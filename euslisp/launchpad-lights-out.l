@@ -101,11 +101,19 @@
       (setq prev-input-button button-id)
       (setq target-list (send self :neigbor-list button-id))
       ;; (setq target-list (list button-id))
-      (print target-list)
+      ;; (print target-list)
       (dolist (target target-list)
         (setf (elt state-list (- target 8)) (- 1 (elt state-list (- target 8))))
         (send self :state2led target))
       ))
+
+  (:finish-judge
+    ()
+    (let ((is-finished t))
+      (dolist (state state-list)
+        (if (= state 0) (setq is-finished nil)))
+      (if is-finished (print "Congratulations!"))
+      is-finished))
   )
 
 ;; atlasmarion/midi-gazebo-cotroller.lからコピペ
@@ -117,5 +125,9 @@
 
 (unix::sleep 1) ;; midi_config_player待ち
 (setq *launchpad-lights-out* (instance launchpad-lights-out :init))
-(ros::spin)
+
+(while t
+  (ros::spin-once)
+  (if (send *launchpad-lights-out* :finish-judge)
+    (return)))
 
