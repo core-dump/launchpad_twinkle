@@ -32,15 +32,16 @@
     (send msg :array (list msg-elem))
     (ros::publish "/midi_joy/set_feedback" msg)))
 
+;; nilに注意。
 (defun button2led-id (button-id)
   (let (led-id)
     (cond
+     ((eq button-id nil)
+      (setq led-id nil))
      ((and (>= button-id 0) (<= button-id 7))
       (setq led-id (+ (* button-id 9) 16)))
      ((and (>= button-id 8) (<= button-id 71))
-      (setq led-id (+ (* (/ button-id 8) 9) (mod button-id 8) -1)))
-     (t
-      (print "invalid button-id")))
+      (setq led-id (+ (* (/ button-id 8) 9) (mod button-id 8) -1))))
     led-id))
 
 (defun radio-button-led (selected-id id-list)
