@@ -38,6 +38,8 @@
   (:init
     ()
     (setq state-list (make-list 64))
+    (setq *random-state* (integer-vector (send (unix::now) :micro)
+                                         (send (unix::now) :total-seconds)))
     (dotimes (idx (length state-list))
       (setf (elt state-list idx) (random 2)))
     (dotimes (idx (length state-list))
