@@ -31,12 +31,14 @@
 
 (defclass launchpad-lights-out
   :super object
-  :slots (prev-input-button state-list))
+  :slots (start-time clear-time prev-input-button state-list))
 ;; state-listはbuttonの8~71を0~63にスライドした順番。
 
 (defmethod launchpad-lights-out
   (:init
     ()
+    (setq start-time (send (unix::now) :total-seconds))
+    (setq clear-time -1)
     (setq prev-input-button nil)
     (setq state-list (make-list 64))
     (setq *random-state* (integer-vector (send (unix::now) :micro)
@@ -112,7 +114,10 @@
     (let ((is-finished t))
       (dolist (state state-list)
         (if (= state 0) (setq is-finished nil)))
-      (if is-finished (print "Congratulations!"))
+      (when is-finished
+        (if (= clear-time -1)
+          (setq clear-time (- (send (unix::now) :total-seconds) start-time)))
+        (format t "Congratulations!~%clear time: ~a[s]~%" clear-time))
       is-finished))
   )
 
