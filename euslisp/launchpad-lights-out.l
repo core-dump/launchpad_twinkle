@@ -50,7 +50,7 @@
 
   (:state2led ;; stateに応じて光らせる
     (b-id)
-    (let ((state (elt state-list (- b-id 8)))
+    (let ((state (elt state-list (- b-id 8))) ;;はみ出したら死ぬ
           (l-id (button2led-id b-id)))
       (case state
         (0 (pub-led l-id :off))
@@ -64,7 +64,8 @@
     (msg)
     (let ((button-id (get-idx-from-value (send msg :buttons) 1))
           (target-list))
-      (when (eq (button2led-id button-id) nil)
+      (when (or (eq button-id nil)
+                (< button-id 8))
         (setq prev-input-button nil)
         (return-from :joy-cb))
       ;; 押しっぱなしには反応しない
