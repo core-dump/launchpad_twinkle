@@ -31,12 +31,13 @@
 
 (defclass launchpad-lights-out
   :super object
-  :slots (start-time clear-time prev-input-button state-list))
+  :slots (moves start-time clear-time prev-input-button state-list))
 ;; state-listはbuttonの8~71を0~63にスライドした順番。
 
 (defmethod launchpad-lights-out
   (:init
     ()
+    (setq moves 0)
     (setq start-time (send (unix::now) :total-seconds))
     (setq clear-time -1)
     (setq prev-input-button nil)
@@ -101,6 +102,7 @@
       ;; 押しっぱなしには反応しない
       (if (eq button-id prev-input-button)
         (return-from :joy-cb))
+      (setq moves (1+ moves))
       (setq prev-input-button button-id)
       (setq target-list (send self :neigbor-list button-id))
        (setq target-list (list button-id))
@@ -119,7 +121,7 @@
       (when is-finished
         (if (= clear-time -1)
           (setq clear-time (- (send (unix::now) :total-seconds) start-time)))
-        (format t "Congratulations!~%clear time: ~a[s]~%" clear-time))
+        (format t "Congratulations!~%clear time: ~a[s]~%total moves: ~a~%" clear-time moves))
       is-finished))
   )
 
