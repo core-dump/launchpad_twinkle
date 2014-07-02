@@ -31,12 +31,15 @@
 
 (defclass launchpad-reversi
   :super object
-  :slots (prev-input-button state-list))
+  :slots (player prev-input-button state-list))
+;; playerは1,2のどちらか
 ;; state-listはbuttonの8~71を0~63にスライドした順番。
+;; state-listには0（無所属）,1（1P）,2(2P)のどれかが入る。
 
 (defmethod launchpad-reversi
   (:init
     ()
+    (setq player 1)
     (setq prev-input-button nil)
     (setq state-list (make-list 64 :initial-element 0))
     (dotimes (idx (length state-list))
@@ -51,6 +54,7 @@
       (case state
         (0 (pub-led l-id :off))
         (1 (pub-led l-id :orange))
+        (2 (pub-led l-id :green))
         (t (pub-led l-id :red))))
     )
 
@@ -67,11 +71,12 @@
         (return-from :joy-cb))
       (setq prev-input-button button-id)
       (setq target-list (list button-id)) ;; これをコメントインすると押したボタンだけ反転する
-      (print target-list)
+      (format t "~a ~a~%" player target-list)
       (dolist (target target-list)
-        (setf (elt state-list (- target 8)) (- 1 (elt state-list (- target 8)))))
+        (setf (elt state-list (- target 8)) player))
       (dotimes (idx (length state-list))
         (send self :state2led (+ idx 8)))
+      (if (= player 1) (setq player 2) (setq player 1))
       ))
 
   (:finish-judge ())
