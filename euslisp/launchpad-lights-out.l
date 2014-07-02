@@ -31,12 +31,13 @@
 
 (defclass launchpad-lights-out
   :super object
-  :slots (state-list))
+  :slots (prev-input-button state-list))
 ;; state-listはbuttonの8~71を0~63にスライドした順番。
 
 (defmethod launchpad-lights-out
   (:init
     ()
+    (setq prev-input-button nil)
     (setq state-list (make-list 64))
     (setq *random-state* (integer-vector (send (unix::now) :micro)
                                          (send (unix::now) :total-seconds)))
@@ -63,14 +64,19 @@
     (msg)
     (let ((button-id (get-idx-from-value (send msg :buttons) 1))
           (target-list))
-      (when (not (eq (button2led-id button-id) nil))
-        (pub-led (button2led-id button-id) 1)
+      (when (eq (button2led-id button-id) nil)
+        (setq prev-input-button nil)
+        (return-from :joy-cb))
+      ;; 押しっぱなしには反応しない
+      (if (eq button-id prev-input-button)
+        (return-from :joy-cb))
+      (setq prev-input-button button-id)
       ;; 対象ボタンを調べる(TODO)
-        (setq target-list (list button-id))
-        (setf (elt state-list button-id) (- 1 (elt state-list button-id)))
-        (dolist (target target-list)
-          (send self :state2led target))
-      )))
+      (setq target-list (list button-id))
+      (setf (elt state-list (- button-id 8)) (- 1 (elt state-list (- button-id 8))))
+      (dolist (target target-list)
+        (send self :state2led target))
+      ))
   )
 
 ;; atlasmarion/midi-gazebo-cotroller.lからコピペ
