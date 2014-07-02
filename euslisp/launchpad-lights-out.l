@@ -94,7 +94,11 @@
     (msg)
     (let ((button-id (get-idx-from-value (send msg :buttons) 1))
           (target-list))
-      (if (eq button-id 0) (print state-list)) ;; デバッグ用
+      (if (eq button-id 0)
+        (format t "state-list: ~a~%time: ~a[s]~%moves: ~a~%"
+                state-list
+                (- (send (unix::now) :total-seconds) start-time)
+                moves)) ;; デバッグ用
       (when (or (eq button-id nil)
                 (< button-id 8))
         (setq prev-input-button nil)
