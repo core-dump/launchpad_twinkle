@@ -61,13 +61,16 @@
 
   (:joy-cb
     (msg)
-    (let ((button-id (get-idx-from-value (send msg :buttons) 1)))
-      (if (not (eq (button2led-id button-id) nil))
-        (pub-led (button2led-id button-id) 1))
-      ;; 対象ボタンを調べる
-      ;; stateを反転させる
-      ;; 光らせる
-      ))
+    (let ((button-id (get-idx-from-value (send msg :buttons) 1))
+          (target-list))
+      (when (not (eq (button2led-id button-id) nil))
+        (pub-led (button2led-id button-id) 1)
+      ;; 対象ボタンを調べる(TODO)
+        (setq target-list (list button-id))
+        (setf (elt state-list button-id) (- 1 (elt state-list button-id)))
+        (dolist (target target-list)
+          (send self :state2led target))
+      )))
   )
 
 ;; atlasmarion/midi-gazebo-cotroller.lからコピペ
