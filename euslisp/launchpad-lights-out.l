@@ -36,11 +36,12 @@
 
 (defmethod launchpad-lights-out
   (:init
+    ()
     (setq state-list (make-list 64))
     (dotimes (idx (length state-list))
       (setf (elt state-list idx) (random 2)))
     ;; 光らせる
-    ;; コールバックの設定
+    (ros::subscribe "/joy" sensor_msgs::Joy #'send self :joy-cb)
     )
 
   ;; () stateに応じて光らせる
@@ -49,8 +50,22 @@
 
   (:joy-cb
     (msg)
-    ;; 対象ボタンを調べる
-    ;; stateを反転させる
-    ;; 光らせる
-    )
+    (let ((button-id (get-idx-from-value (send msg :buttons) 1)))
+      (if (not (eq (button2led-id button-id) nil))
+        (pub-led (button2led-id button-id) 1))
+      ;; 対象ボタンを調べる
+      ;; stateを反転させる
+      ;; 光らせる
+      ))
   )
+
+;; atlasmarion/midi-gazebo-cotroller.lからコピペ
+(defun get-idx-from-value (l value)
+  (let ((answer-idx nil))
+    (dotimes (idx (length l))
+      (if (equal (elt l idx) value) (setq answer-idx idx)))
+    answer-idx))
+
+(setq *launchpad-lights-out* (instance launchpad-lights-out :init))
+(ros::spin)
+
