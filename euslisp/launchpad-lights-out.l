@@ -58,7 +58,34 @@
         (t (pub-led l-id :red))))
     )
 
-  ;; () 自分を含む周囲のbutton-idを返す
+  (:neigbor-list ;; 自分を含む周囲のbutton-idを返す
+    (b-id)
+    (let ((ans-list (list b-id))
+          (candidate))
+      (setq candidate (- b-id 8))
+      (if (and (>= candidate 8)
+               (<= candidate 71))
+        (setq ans-list (append ans-list (list candidate))))
+
+      (setq candidate (- b-id 1))
+      (if (and (not (= (mod b-id 8) 0))
+               (>= candidate 8)
+               (<= candidate 71))
+        (setq ans-list (append ans-list (list candidate))))
+
+      (setq candidate (+ b-id 1))
+      (if (and (not (= (mod b-id 8) 7))
+               (>= candidate 8)
+               (<= candidate 71))
+        (setq ans-list (append ans-list (list candidate))))
+
+      (setq candidate (+ b-id 8))
+      (if (and (>= candidate 8)
+               (<= candidate 71))
+        (setq ans-list (append ans-list (list candidate))))
+
+      ans-list)
+    )
 
   (:joy-cb
     (msg)
@@ -72,10 +99,11 @@
       (if (eq button-id prev-input-button)
         (return-from :joy-cb))
       (setq prev-input-button button-id)
-      ;; 対象ボタンを調べる(TODO)
-      (setq target-list (list button-id))
-      (setf (elt state-list (- button-id 8)) (- 1 (elt state-list (- button-id 8))))
+      (setq target-list (send self :neigbor-list button-id))
+      ;; (setq target-list (list button-id))
+      (print target-list)
       (dolist (target target-list)
+        (setf (elt state-list (- target 8)) (- 1 (elt state-list (- target 8))))
         (send self :state2led target))
       ))
   )
