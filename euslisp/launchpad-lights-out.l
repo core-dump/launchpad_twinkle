@@ -93,6 +93,7 @@
     (msg)
     (let ((button-id (get-idx-from-value (send msg :buttons) 1))
           (target-list))
+      (if (eq button-id 0) (print state-list)) ;; デバッグ用
       (when (or (eq button-id nil)
                 (< button-id 8))
         (setq prev-input-button nil)
@@ -102,11 +103,12 @@
         (return-from :joy-cb))
       (setq prev-input-button button-id)
       (setq target-list (send self :neigbor-list button-id))
-      ;; (setq target-list (list button-id))
+       (setq target-list (list button-id))
       ;; (print target-list)
       (dolist (target target-list)
-        (setf (elt state-list (- target 8)) (- 1 (elt state-list (- target 8))))
-        (send self :state2led target))
+        (setf (elt state-list (- target 8)) (- 1 (elt state-list (- target 8)))))
+      (dotimes (idx (length state-list))
+        (send self :state2led (+ idx 8)))
       ))
 
   (:finish-judge
