@@ -1,0 +1,6 @@
+<launch>
+  <node pkg="jsk_teleop_joy" type="midi_config_player.py"
+   	args="$(find jsk_teleop_joy)/configs/launchpad_mini.yaml" name="midi_joy" />
+  <node name="midi_twinkle" pkg="roseus" type="roseus"
+  	args="$(find atlasmarion)/euslisp/midi-twinkle.l" output="screen" />
+ </launch>
