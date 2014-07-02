@@ -59,6 +59,10 @@
         (t (pub-led l-id :red))))
     )
 
+  (:strike-list ;; 手に入る駒のリストを返す（未実装）
+   (b-id)
+   (list b-id))
+
   (:joy-cb
     (msg)
     (let ((button-id (get-idx-from-value (send msg :buttons) 1))
@@ -71,7 +75,7 @@
       (if (eq button-id prev-input-button)
         (return-from :joy-cb))
       (setq prev-input-button button-id)
-      (setq target-list (list button-id)) ;; これをコメントインすると押したボタンだけ反転する
+      (setq target-list (send self :strike-list button-id))
       (format t "~a ~a~%" player target-list)
       (dolist (target target-list)
         (setf (elt state-list (- target 8)) player))
