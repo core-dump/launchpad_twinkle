@@ -40,11 +40,20 @@
     (setq state-list (make-list 64))
     (dotimes (idx (length state-list))
       (setf (elt state-list idx) (random 2)))
-    ;; 光らせる
+    (dotimes (idx (length state-list))
+      (send self :state2led idx))
     (ros::subscribe "/joy" sensor_msgs::Joy #'send self :joy-cb)
     )
 
-  ;; () stateに応じて光らせる
+  (:state2led ;; stateに応じて光らせる
+    (b-id)
+    (let ((state (elt state-list b-id))
+          (l-id (button2led-id (+ b-id 8))))
+      (case state
+        (0 (pub-led l-id :off))
+        (1 (pub-led l-id :orange))
+        (t (pub-led l-id :red))))
+    )
 
   ;; () 自分を含む周囲のbutton-idを返す
 
@@ -66,6 +75,7 @@
       (if (equal (elt l idx) value) (setq answer-idx idx)))
     answer-idx))
 
+(unix::sleep 1) ;; midi_config_player待ち
 (setq *launchpad-lights-out* (instance launchpad-lights-out :init))
 (ros::spin)
 
