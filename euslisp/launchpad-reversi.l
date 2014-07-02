@@ -40,6 +40,7 @@
   (:init
     ()
     (setq player 1)
+    (pub-led 0 :orange)
     (setq prev-input-button nil)
     (setq state-list (make-list 64 :initial-element 0))
     (dotimes (idx (length state-list))
@@ -76,7 +77,9 @@
         (setf (elt state-list (- target 8)) player))
       (dotimes (idx (length state-list))
         (send self :state2led (+ idx 8)))
-      (if (= player 1) (setq player 2) (setq player 1))
+      (if (= player 1)
+          (progn (setq player 2) (pub-led 0 :green))
+        (progn (setq player 1) (pub-led 0 :orange)))
       ))
 
   (:finish-judge ())
