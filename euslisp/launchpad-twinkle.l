@@ -1,6 +1,6 @@
 #!/usr/bin/env roseus
 
-(ros::roseus "midi_twinkle")
+(ros::roseus "launchpad_twinkle")
 (ros::load-ros-manifest "sensor_msgs")
 (ros::advertise "/midi_joy/set_feedback" sensor_msgs::JoyFeedbackArray)
 
