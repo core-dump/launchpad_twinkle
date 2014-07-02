@@ -32,7 +32,7 @@
 (defclass launchpad-lights-out
   :super object
   :slots (state-list))
-;; state-listはbutton-idxに合わせる。
+;; state-listはbuttonの8~71を0~63にスライドした順番。
 
 (defmethod launchpad-lights-out
   (:init
@@ -43,14 +43,14 @@
     (dotimes (idx (length state-list))
       (setf (elt state-list idx) (random 2)))
     (dotimes (idx (length state-list))
-      (send self :state2led idx))
+      (send self :state2led (+ idx 8))) ;; button8~71を初期化
     (ros::subscribe "/joy" sensor_msgs::Joy #'send self :joy-cb)
     )
 
   (:state2led ;; stateに応じて光らせる
     (b-id)
-    (let ((state (elt state-list b-id))
-          (l-id (button2led-id (+ b-id 8))))
+    (let ((state (elt state-list (- b-id 8)))
+          (l-id (button2led-id b-id)))
       (case state
         (0 (pub-led l-id :off))
         (1 (pub-led l-id :orange))
