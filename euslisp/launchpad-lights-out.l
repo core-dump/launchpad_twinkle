@@ -109,7 +109,7 @@
       (setq moves (1+ moves))
       (setq prev-input-button button-id)
       (setq target-list (send self :neigbor-list button-id))
-       (setq target-list (list button-id))
+      ;; (setq target-list (list button-id)) ;; これをコメントインすると押したボタンだけ反転する
       ;; (print target-list)
       (dolist (target target-list)
         (setf (elt state-list (- target 8)) (- 1 (elt state-list (- target 8)))))
