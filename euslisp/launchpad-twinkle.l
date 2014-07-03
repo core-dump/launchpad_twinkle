@@ -20,6 +20,7 @@
   (let ((msg (instance sensor_msgs::JoyFeedbackArray :init))
         (msg-elem (instance sensor_msgs::JoyFeedback :init)))
     (send msg-elem :type 0)
+    (if (eq id nil) (return-from pub-led))
     (send msg-elem :id id)
     (cond
       ((equal intensity :off)        (setq intensity 0))
