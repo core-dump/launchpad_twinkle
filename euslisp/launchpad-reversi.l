@@ -294,5 +294,6 @@
 (while (ros::ok)
   (ros::spin-once)
   (when (send *launchpad-reversi* :finish-judge)
-    (send *launchpad-reversi* :show-result))
+    (send *launchpad-reversi* :show-result)
+    (return))
   (ros::sleep))
