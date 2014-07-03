@@ -89,9 +89,47 @@
         (t (pub-led l-id :red))))
     )
 
-  (:strike-list ;; 手に入る駒のリストを返す（未実装）
+  (:flip-list ;; 手に入る駒のリストを返す
    (bo-id)
-   (list bo-id))
+   (let (ans-list)
+     (setq ans-list (make-list 9)) ;; なぜかletの初期値では入らない
+     (setf (elt ans-list 8) (list bo-id))
+     (dotimes (i 8)
+       (setf (elt ans-list i) (copy-object (send self :flip-list-oneline bo-id i))))
+     (print ans-list)
+     (setq ans-list (flatten ans-list)) ;; 平坦化
+     ans-list)
+   )
+
+  (:flip-list-oneline ;; 8方向（右から反時計周り）のうち指定された方向の、反転する駒のリストを返す。
+   (bo-id direction)
+   (let ((ans-list (list nil))
+         (target-id bo-id)
+         x-step
+         y-step)
+     (case direction
+           (0 (setq x-step  1) (setq y-step  0))
+           (1 (setq x-step  1) (setq y-step  1))
+           (2 (setq x-step  0) (setq y-step  1))
+           (3 (setq x-step -1) (setq y-step  1))
+           (4 (setq x-step -1) (setq y-step  0))
+           (5 (setq x-step -1) (setq y-step -1))
+           (6 (setq x-step  0) (setq y-step -1))
+           (7 (setq x-step  1) (setq y-step -1))
+           (t (return-from :flip-list-oneline)))
+     (while t
+       (setq target-id (+ target-id x-step (* y-step 10)))
+       (case (elt state-list target-id)
+         (0
+          (setq ans-list (list nil))
+          (return))
+         ;;(player とすると入らなかった
+         (t
+          (if (eq (elt state-list target-id) player)
+              (return))
+          (setq ans-list (append ans-list (list target-id))))))
+     ans-list)
+   )
 
   (:joy-cb
     (msg)
@@ -103,7 +141,8 @@
         (setq prev-input-button nil)
         (return-from :joy-cb))
       (setq prev-input-button button-id)
-      (setq target-list (send self :strike-list (send self :button2board-id button-id)))
+      (setq target-list (send self :flip-list (send self :button2board-id button-id)))
+      ;;(setq target-list (list (send self :button2board-id button-id)))
       (format t "~a ~a~%" player target-list)
       (dolist (target target-list)
         (setf (elt state-list target) player))
