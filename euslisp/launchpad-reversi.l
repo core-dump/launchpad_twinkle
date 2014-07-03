@@ -286,6 +286,7 @@
 
   (:show-result
    ()
+   (pub-led 0 :red)
    (let (stone-cnt winner)
      (setq stone-cnt (send self :count-stone))
      (if (> (elt stone-cnt 0) (elt stone-cnt 1))
