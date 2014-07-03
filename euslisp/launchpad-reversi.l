@@ -171,6 +171,11 @@
       (when (eq (send self :button2board-id button-id) nil)
         (setq prev-input-button nil)
         (return-from :joy-cb))
+      ;; 置けない場所
+      (when (not (send self :is-placeable (send self :button2board-id button-id)))
+        (print "Implaceable!")
+        (return-from :joy-cb))
+
       (setq target-list (send self :flip-list (send self :button2board-id button-id)))
       ;;(setq target-list (list (send self :button2board-id button-id)))
       (format t "player~a ~a~%" player target-list)
