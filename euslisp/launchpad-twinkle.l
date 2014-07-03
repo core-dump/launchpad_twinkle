@@ -51,6 +51,10 @@
         (pub-led id :red)
       (pub-led id :green))))
 
+(defun reset-led ()
+  (dotimes (i 80)
+    (pub-led i :off)))
+
 ;; step: 0.01 ~ 0.0001 を推奨
 (defun pattern (&optional (step 0.001))
   (let ((seed 0) (intensity 0))
