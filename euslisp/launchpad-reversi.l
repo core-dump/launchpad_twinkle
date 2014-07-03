@@ -195,7 +195,19 @@
 
 ;; 状況に応じて手番放棄ボタンの色を変えて光らせたい
 
-  (:finish-judge ())
+  (:finish-judge
+   ()
+   (let ((player-bak player)
+         (is-finished t))
+     (setq player 1)
+     (if (send self :exist-placeable) (setq is-finished nil))
+     (setq player 2)
+     (if (send self :exist-placeable) (setq is-finished nil))
+     (setq player player-bak)
+     (setq player-lock nil)
+     is-finished)
+   )
+
   )
 
 ;; atlasmarion/midi-gazebo-cotroller.lからコピペ
@@ -212,4 +224,4 @@
 (while t ;; (ros::ok)
   (ros::spin-once)
   (if (send *launchpad-reversi* :finish-judge)
-    (return)))
+    (print "finish!")))
