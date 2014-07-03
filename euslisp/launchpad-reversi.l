@@ -17,16 +17,16 @@
 ;; 64 65 ... 70 71 | 7
 ;; -------------------
 
-;; board
+;; board(0~99, 外側に一回りボタンに対応しないマスがある)
 ;; -------------------
 ;;  *  * ...  *  *
 ;; -- -- --- -- --
-;;  0  1 ...  6  7 | *
-;;  8  9 ... 14 15 | *
+;; 11 12 ... 17 18 | *
+;; 21 22 ... 27 28 | *
 ;;  .  . .    .  . | .
 ;;  .  .   .  .  . | .
-;; 48 49 ... 54 55 | *
-;; 56 57 ... 62 63 | *
+;; 71 72 ... 77 78 | *
+;; 81 82 ... 87 88 | *
 ;; -------------------
 
 ;; LEDs
@@ -54,7 +54,7 @@
     (setq player 1)
     (pub-led 0 :orange)
     (setq prev-input-button nil)
-    (setq state-list (make-list 64 :initial-element 0))
+    (setq state-list (make-list 100 :initial-element 0))
     (dotimes (idx (length state-list))
       (send self :state2led idx))
     (ros::subscribe "/joy" sensor_msgs::Joy #'send self :joy-cb)
@@ -66,15 +66,17 @@
             (< bt-id 8)
             (> bt-id 71))
         nil
-      (- bt-id 8)))
+      (+ (* (/ bt-id 8) 10) (mod bt-id 8) 1)))
 
   (:board2led-id
     (bo-id)
     (if (or (eq bo-id nil)
-            (< bo-id 0)
-            (> bo-id 63))
+            (< (mod bo-id 10) 1)
+            (> (mod bo-id 10) 8)
+            (< (/   bo-id 10) 1)
+            (> (/   bo-id 10) 8))
         nil
-      (+ (* (/ bo-id 8) 9) (mod bo-id 8) 8)))
+      (+ (* (/ bo-id 10) 9) (mod bo-id 10) -2)))
 
   (:state2led ;; stateに応じて光らせる
     (bo-id)
