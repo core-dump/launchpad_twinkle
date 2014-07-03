@@ -43,7 +43,7 @@
 
 (defclass launchpad-reversi
   :super object
-  :slots (player player-lock prev-input-button state-list))
+  :slots (player player-lock pass-cnt prev-input-button state-list))
 ;; playerは1,2のどちらか。
 ;; state-listはboardのidで表す。
 ;; state-listには0（無所属）,1（1P）,2(2P)のどれかが入る。
@@ -53,6 +53,7 @@
     ()
     (setq player 1)
     (setq player-lock nil)
+    (setq pass-cnt (list 0 0))
     ;;(pub-led 0 :orange) ;; なんかここだと光らない
     (setq prev-input-button nil)
     (setq state-list (make-list 100 :initial-element 0))
@@ -64,6 +65,7 @@
     (dotimes (idx (length state-list))
       (send self :state2led idx))
     (pub-led 0 :orange) ;; ここだと光る
+    (pub-led 16 :yellow)
     (ros::subscribe "/joy" sensor_msgs::Joy #'send self :joy-cb)
     )
 
@@ -144,15 +146,27 @@
     (msg)
     (let ((button-id (get-idx-from-value (send msg :buttons) 1))
           (target-list))
+      ;; 直前と同じボタン
       (if (eq button-id prev-input-button)
         (return-from :joy-cb))
+      (setq prev-input-button button-id)
+      ;; パスボタン
+      (when (eq button-id 0)
+        (if (= player 1)
+          (progn
+            (setf (elt pass-cnt 0) (1+ (elt pass-cnt 0)))
+            (setq player 2)
+            (pub-led 0 :green)) ;; この処理メインループで1箇所にした方がいいね
+          (progn
+            (setf (elt pass-cnt 1) (1+ (elt pass-cnt 1)))
+            (setq player 1)
+            (pub-led 0 :orange)))
+        (format t "pass: ~a~%" pass-cnt)
+        (return-from :joy-cb))
+      ;; 盤外のボタン
       (when (eq (send self :button2board-id button-id) nil)
         (setq prev-input-button nil)
         (return-from :joy-cb))
-      (setq prev-input-button button-id)
-
-      ;; ここに手番放棄機能
-
       (setq target-list (send self :flip-list (send self :button2board-id button-id)))
       ;;(setq target-list (list (send self :button2board-id button-id)))
       (format t "player~a ~a~%" player target-list)
