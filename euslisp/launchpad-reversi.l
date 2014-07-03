@@ -152,6 +152,7 @@
       (setq prev-input-button button-id)
       ;; パスボタン
       (when (eq button-id 0)
+        (if (send self :exist-placeable) (return-from :joy-cb)) ;; 必須でないパスは禁止
         (if (= player 1)
           (progn
             (setf (elt pass-cnt 0) (1+ (elt pass-cnt 0)))
