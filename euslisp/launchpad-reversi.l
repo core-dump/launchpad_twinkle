@@ -162,18 +162,24 @@
 
   (:is-placeable ;; そのマスは置けるか？
    (bo-id)
-   (let ((flat-flip-list (flatten (send self :flip-list bo-id)))
+   (let ((flat-flip-list)
          (ans nil))
+     ;; ゲーム盤内？
+     (if (or (< (mod bo-id 10) 1)
+             (< (/   bo-id 10) 1)
+             (> (mod bo-id 10) 8)
+             (> (/   bo-id 10) 8))
+      (return-from :is-placeable nil))
+     ;; 駒は置かれていない？
+     (if (not (= (elt state-list bo-id) 0))
+         (return-from :is-placeable nil))
      ;; 反転できる駒はある？
+     (setq flat-flip-list (flatten (send self :flip-list bo-id)))
      (dolist (flip-id flat-flip-list)
        (if (or (eq flip-id nil)
                (eq flip-id bo-id))
            nil
          (setq ans t)))
-     ;; 駒は置かれていない？
-     (if (= (elt state-list bo-id) 0)
-         nil
-       (setq ans nil))
      ans)
    )
 
