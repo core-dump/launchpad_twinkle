@@ -52,7 +52,7 @@
   (:init
     ()
     (setq player 1)
-    (pub-led 0 :orange)
+    (pub-led 0 :orange) ;; なんか光ってない気がする
     (setq prev-input-button nil)
     (setq state-list (make-list 100 :initial-element 0))
     (dotimes (idx (length state-list))
@@ -131,6 +131,8 @@
      ans-list)
    )
 
+  (:flip-led ()) ;; LEDによる反転アニメーション
+
   (:joy-cb
     (msg)
     (let ((button-id (get-idx-from-value (send msg :buttons) 1))
@@ -141,6 +143,9 @@
         (setq prev-input-button nil)
         (return-from :joy-cb))
       (setq prev-input-button button-id)
+
+      ;; ここに手番放棄機能
+
       (setq target-list (send self :flip-list (send self :button2board-id button-id)))
       ;;(setq target-list (list (send self :button2board-id button-id)))
       (format t "~a ~a~%" player target-list)
@@ -172,6 +177,9 @@
      ans)
    )
 
+  (:exist-placeable ()) ;; 置けるマスがあるか？
+;; 状況に応じて手番放棄ボタンの色を変えて光らせたい
+
   (:finish-judge ())
   )
 
@@ -185,7 +193,8 @@
 (unix::sleep 1) ;; midi_config_player待ち
 (setq *launchpad-reversi* (instance launchpad-reversi :init))
 
-(while t
+;; やたらファンが回る(ros::rate)とか？
+(while t ;; (ros::ok)
   (ros::spin-once)
   (if (send *launchpad-reversi* :finish-judge)
     (return)))
