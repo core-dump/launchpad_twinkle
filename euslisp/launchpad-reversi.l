@@ -231,7 +231,10 @@
 (setq *launchpad-reversi* (instance launchpad-reversi :init))
 
 ;; やたらファンが回る(ros::rate)とか？
-(while t ;; (ros::ok)
+;; 最初にボタンを押したとき、/midi_joy/set_feedbackが1000hz以上出てるのが気になる。
+(ros::rate 30)
+(while (ros::ok)
   (ros::spin-once)
   (if (send *launchpad-reversi* :finish-judge)
-    (print "finish!")))
+    (print "finish!"))
+  (ros::sleep))
