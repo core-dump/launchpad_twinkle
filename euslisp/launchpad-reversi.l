@@ -43,7 +43,7 @@
 
 (defclass launchpad-reversi
   :super object
-  :slots (player prev-input-button state-list))
+  :slots (player player-lock prev-input-button state-list))
 ;; playerは1,2のどちらか。
 ;; state-listはboardのidで表す。
 ;; state-listには0（無所属）,1（1P）,2(2P)のどれかが入る。
@@ -52,6 +52,7 @@
   (:init
     ()
     (setq player 1)
+    (setq player-lock nil)
     (pub-led 0 :orange) ;; なんか光ってない気がする
     (setq prev-input-button nil)
     (setq state-list (make-list 100 :initial-element 0))
@@ -197,6 +198,7 @@
 
   (:finish-judge
    ()
+   ;;(send self :wait-and-lock player-lock)
    (let ((player-bak player)
          (is-finished t))
      (setq player 1)
@@ -204,8 +206,16 @@
      (setq player 2)
      (if (send self :exist-placeable) (setq is-finished nil))
      (setq player player-bak)
-     (setq player-lock nil)
+     ;;(setq player-lock nil)
      is-finished)
+   )
+
+  (:wait-and-lock
+   (lock)
+   (while t
+     (when (not lock)
+       (setq lock t)
+       (return-from :wait-and-lock)))
    )
 
   )
