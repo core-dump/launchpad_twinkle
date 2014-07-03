@@ -218,6 +218,17 @@
        (return-from :wait-and-lock)))
    )
 
+  (:count-stone
+   ()
+   (let ((pl1 0)
+         (pl2 0))
+     (dotimes (i (length state-list))
+       (case (elt state-list i)
+         (1 (setq pl1 (1+ pl1)))
+         (2 (setq pl2 (1+ pl2)))))
+     (list pl1 pl2))
+   )
+
   )
 
 ;; atlasmarion/midi-gazebo-cotroller.lからコピペ
@@ -235,6 +246,7 @@
 (ros::rate 30)
 (while (ros::ok)
   (ros::spin-once)
-  (if (send *launchpad-reversi* :finish-judge)
-    (print "finish!"))
+  (when (send *launchpad-reversi* :finish-judge)
+    (print "finish!")
+    (print (send *launchpad-reversi* :count-stone)))
   (ros::sleep))
