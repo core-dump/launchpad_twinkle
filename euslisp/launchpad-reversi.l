@@ -89,6 +89,7 @@
 
   (:state2led ;; stateに応じて光らせる
     (bo-id)
+    (if (eq bo-id nil) (return-from :state2led))
     (let ((state (elt state-list bo-id)) ;;はみ出したら死ぬ
           (l-id (send self :board2led-id bo-id)))
       (case state
@@ -140,7 +141,30 @@
      ans-list)
    )
 
-  (:flip-led ()) ;; LEDによる反転アニメーション
+  ;; 途中で次の駒置けるか？ -> 置けなかった。spin-onceが来てないから。
+  (:flip-led-animation ;; LEDによる反転アニメーション
+   (flip-list)
+   (let ((continue-flag t)
+         (idx 0))
+     (while continue-flag
+       (setq continue-flag nil)
+       ;; 一瞬赤くする
+       (dolist (oneline-flip-list flip-list)
+         (when (< idx (length oneline-flip-list))
+             (pub-led (send self :board2led-id (elt oneline-flip-list idx)) :red)
+             (if (< idx (1- (length oneline-flip-list)))
+               (setq continue-flag t))))
+       (unix::usleep (* 1000 100))
+       ;; playerの色にする
+       (dolist (oneline-flip-list flip-list)
+         (when (< idx (length oneline-flip-list))
+           (send self :state2led (elt oneline-flip-list idx))))
+       (unix::usleep (* 1000 100))
+       (setq idx (1+ idx))))
+     ;; 念のため全マス更新
+     (dotimes (idx (length state-list))
+     (send self :state2led idx))
+   )
 
   (:joy-cb
     (msg)
@@ -183,8 +207,9 @@
       ;;                                           (send self :button2board-id button-id)))
       (dolist (target (flatten target-list))
         (setf (elt state-list target) player))
-      (dotimes (idx (length state-list))
-        (send self :state2led idx))
+      (send self :flip-led-animation target-list)
+      ;; (dotimes (idx (length state-list))
+      ;;   (send self :state2led idx))
       (if (= player 1)
           (progn (setq player 2) (pub-led 0 :green))
         (progn (setq player 1) (pub-led 0 :orange)))
@@ -225,8 +250,6 @@
          (setq ans t)))
      ans)
    )
-
-;; 状況に応じて手番放棄ボタンの色を変えて光らせたい
 
   (:finish-judge
    ()
