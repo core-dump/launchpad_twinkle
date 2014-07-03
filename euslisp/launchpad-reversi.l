@@ -148,8 +148,8 @@
 
       (setq target-list (send self :flip-list (send self :button2board-id button-id)))
       ;;(setq target-list (list (send self :button2board-id button-id)))
-      (format t "~a ~a~%" player target-list)
-      (format t "~a placeable:~a~%" player (send self :is-placeable
+      (format t "player~a ~a~%" player target-list)
+      (format t "player~a was-placeable:~a~%" player (send self :is-placeable
                                                  (send self :button2board-id button-id)))
       (dolist (target target-list)
         (setf (elt state-list target) player))
@@ -158,6 +158,7 @@
       (if (= player 1)
           (progn (setq player 2) (pub-led 0 :green))
         (progn (setq player 1) (pub-led 0 :orange)))
+      (format t "player~a exist-placeable: ~a~%" player (send self :exist-placeable))
       ))
 
   (:is-placeable ;; そのマスは置けるか？
@@ -183,7 +184,15 @@
      ans)
    )
 
-  (:exist-placeable ()) ;; 置けるマスがあるか？
+  (:exist-placeable ;; 置けるマスがあるか？
+   ()
+   (let ((ans nil))
+     (dotimes (i (length state-list))
+       (if (send self :is-placeable i)
+         (setq ans t)))
+     ans)
+   )
+
 ;; 状況に応じて手番放棄ボタンの色を変えて光らせたい
 
   (:finish-judge ())
