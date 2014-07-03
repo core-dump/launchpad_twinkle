@@ -53,7 +53,7 @@
     ()
     (setq player 1)
     (setq player-lock nil)
-    (pub-led 0 :orange) ;; なんか光ってない気がする
+    ;;(pub-led 0 :orange) ;; なんかここだと光らない
     (setq prev-input-button nil)
     (setq state-list (make-list 100 :initial-element 0))
     ;; 初期配置
@@ -63,6 +63,7 @@
     (setf (elt state-list 55) 2)
     (dotimes (idx (length state-list))
       (send self :state2led idx))
+    (pub-led 0 :orange) ;; ここだと光る
     (ros::subscribe "/joy" sensor_msgs::Joy #'send self :joy-cb)
     )
 
