@@ -96,7 +96,7 @@
      (setf (elt ans-list 8) (list bo-id))
      (dotimes (i 8)
        (setf (elt ans-list i) (copy-object (send self :flip-list-oneline bo-id i))))
-     (print ans-list)
+     ;; (print ans-list)
      (setq ans-list (flatten ans-list)) ;; 平坦化
      ans-list)
    )
@@ -144,6 +144,8 @@
       (setq target-list (send self :flip-list (send self :button2board-id button-id)))
       ;;(setq target-list (list (send self :button2board-id button-id)))
       (format t "~a ~a~%" player target-list)
+      (format t "~a placeable:~a~%" player (send self :is-placeable
+                                                 (send self :button2board-id button-id)))
       (dolist (target target-list)
         (setf (elt state-list target) player))
       (dotimes (idx (length state-list))
@@ -152,6 +154,23 @@
           (progn (setq player 2) (pub-led 0 :green))
         (progn (setq player 1) (pub-led 0 :orange)))
       ))
+
+  (:is-placeable ;; そのマスは置けるか？
+   (bo-id)
+   (let ((flat-flip-list (flatten (send self :flip-list bo-id)))
+         (ans nil))
+     ;; 反転できる駒はある？
+     (dolist (flip-id flat-flip-list)
+       (if (or (eq flip-id nil)
+               (eq flip-id bo-id))
+           nil
+         (setq ans t)))
+     ;; 駒は置かれていない？
+     (if (= (elt state-list bo-id) 0)
+         nil
+       (setq ans nil))
+     ans)
+   )
 
   (:finish-judge ())
   )
