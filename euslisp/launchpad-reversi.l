@@ -102,11 +102,11 @@
    (bo-id)
    (let (ans-list)
      (setq ans-list (make-list 9)) ;; なぜかletの初期値では入らない
-     (setf (elt ans-list 8) (list bo-id))
+     (setf (elt ans-list 0) (list bo-id))
      (dotimes (i 8)
-       (setf (elt ans-list i) (copy-object (send self :flip-list-oneline bo-id i))))
+       (setf (elt ans-list (+ i 1)) (copy-object (send self :flip-list-oneline bo-id i))))
      ;; (print ans-list)
-     (setq ans-list (flatten ans-list)) ;; 平坦化
+     ;; (setq ans-list (flatten ans-list)) ;; 平坦化
      ans-list)
    )
 
@@ -174,9 +174,9 @@
       (setq target-list (send self :flip-list (send self :button2board-id button-id)))
       ;;(setq target-list (list (send self :button2board-id button-id)))
       (format t "player~a ~a~%" player target-list)
-      (format t "player~a was-placeable:~a~%" player (send self :is-placeable
-                                                 (send self :button2board-id button-id)))
-      (dolist (target target-list)
+      ;; (format t "player~a was-placeable:~a~%" player (send self :is-placeable
+      ;;                                           (send self :button2board-id button-id)))
+      (dolist (target (flatten target-list))
         (setf (elt state-list target) player))
       (dotimes (idx (length state-list))
         (send self :state2led idx))
@@ -186,7 +186,7 @@
       (if (send self :exist-placeable)
         (pub-led 16 :yellow)
         (pub-led 16 :red))
-      (format t "player~a exist-placeable: ~a~%" player (send self :exist-placeable))
+      (format t "~%player~a exist-placeable: ~a~%" player (send self :exist-placeable))
       ))
 
   (:is-placeable ;; そのマスは置けるか？
