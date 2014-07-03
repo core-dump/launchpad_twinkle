@@ -56,6 +56,11 @@
     (pub-led 0 :orange) ;; なんか光ってない気がする
     (setq prev-input-button nil)
     (setq state-list (make-list 100 :initial-element 0))
+    ;; 初期配置
+    (setf (elt state-list 45) 1)
+    (setf (elt state-list 54) 1)
+    (setf (elt state-list 44) 2)
+    (setf (elt state-list 55) 2)
     (dotimes (idx (length state-list))
       (send self :state2led idx))
     (ros::subscribe "/joy" sensor_msgs::Joy #'send self :joy-cb)
