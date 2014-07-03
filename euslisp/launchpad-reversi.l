@@ -256,6 +256,26 @@
      (list pl1 pl2))
    )
 
+  (:show-result
+   ()
+   (let (stone-cnt winner)
+     (setq stone-cnt (send self :count-stone))
+     (if (> (elt stone-cnt 0) (elt stone-cnt 1))
+       (setq winner 1)
+       (if (< (elt stone-cnt 0) (elt stone-cnt 1))
+         (setq winner 2)
+         (setq winner nil)))
+     (if winner
+       (format t "~%~%*** Game over ***~%~%Player~a wins!~%~%" winner)
+       (format t "~%~%*** Game over ***~%~%Draw game...~%~%"))
+     (format t "* * *~%~%Player1: ~a stones, ~a passes~%Player2: ~a stones, ~a passes~%~%"
+             (elt stone-cnt 0)
+             (elt pass-cnt 0)
+             (elt stone-cnt 1)
+             (elt pass-cnt 1))
+     (format t "* * *~%~%Thank you for playing!~%~%* * *~%~%"))
+   )
+
   )
 
 ;; atlasmarion/midi-gazebo-cotroller.lからコピペ
@@ -274,6 +294,5 @@
 (while (ros::ok)
   (ros::spin-once)
   (when (send *launchpad-reversi* :finish-judge)
-    (print "finish!")
-    (print (send *launchpad-reversi* :count-stone)))
+    (send *launchpad-reversi* :show-result))
   (ros::sleep))
