@@ -161,6 +161,9 @@
             (setf (elt pass-cnt 1) (1+ (elt pass-cnt 1)))
             (setq player 1)
             (pub-led 0 :orange)))
+        (if (send self :exist-placeable) ;; これも
+          (pub-led 16 :yellow)
+          (pub-led 16 :red))
         (format t "pass: ~a~%" pass-cnt)
         (return-from :joy-cb))
       ;; 盤外のボタン
@@ -179,6 +182,9 @@
       (if (= player 1)
           (progn (setq player 2) (pub-led 0 :green))
         (progn (setq player 1) (pub-led 0 :orange)))
+      (if (send self :exist-placeable)
+        (pub-led 16 :yellow)
+        (pub-led 16 :red))
       (format t "player~a exist-placeable: ~a~%" player (send self :exist-placeable))
       ))
 
