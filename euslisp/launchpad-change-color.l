@@ -103,6 +103,7 @@
       (if (equal (elt l idx) value) (setq answer-idx idx)))
     answer-idx))
 
+(unix::sleep 1)
 (setq *launchpad-change-color* (instance launchpad-change-color :init))
 (ros::rate 30)
 (while (ros::ok)
