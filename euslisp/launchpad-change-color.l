@@ -5,31 +5,19 @@
 (ros::load-ros-manifest "sensor_msgs")
 (ros::advertise "/midi_joy/set_feedback" sensor_msgs::JoyFeedbackArray)
 
-;; buttons
+;; axes
 ;; -------------------
-;;  *  * ...  *  *
+;;  0  1 ...  6  7
 ;; -- -- --- -- --
-;;  8  9 ... 14 15 | 0
-;; 16 17 ... 22 23 | 1
+;; 16 17 ... 22 23 | 8
+;; 24 25 ... 30 31 | 9
 ;;  .  . .    .  . | .
 ;;  .  .   .  .  . | .
-;; 56 57 ... 62 63 | 6
-;; 64 65 ... 70 71 | 7
+;; 64 65 ... 70 71 | 14
+;; 72 73 ... 78 79 | 15
 ;; -------------------
 
-;; board(0~99, 外側に一回りボタンに対応しないマスがある)
-;; -------------------
-;;  *  * ...  *  *
-;; -- -- --- -- --
-;; 11 12 ... 17 18 | *
-;; 21 22 ... 27 28 | *
-;;  .  . .    .  . | .
-;;  .  .   .  .  . | .
-;; 71 72 ... 77 78 | *
-;; 81 82 ... 87 88 | *
-;; -------------------
-
-;; LEDs
+;; board, LEDs
 ;; -------------------
 ;;  0  1 ...  6  7
 ;; -- -- --- -- --
@@ -50,7 +38,7 @@
   (:init
     ()
     (setq prev-input-button nil)
-    (setq state-list (make-list 100 :initial-element 0))
+    (setq state-list (make-list 80 :initial-element 0))
     (dotimes (idx (length state-list))
       (send self :state2led idx))
     (ros::subscribe "/joy" sensor_msgs::Joy #'send self :joy-cb)
@@ -58,21 +46,20 @@
 
   (:button2board-id
     (bt-id)
-    (if (or (eq bt-id nil)
-            (< bt-id 8)
-            (> bt-id 71))
-        nil
-      (+ (* (/ bt-id 8) 10) (mod bt-id 8) 1)))
+    (let (ans)
+      (cond ((eq bt-id nil)
+             (setq ans nil))
+            ((and (>= bt-id  0) (<= bt-id  7))
+             (setq ans bt-id))
+            ((and (>= bt-id  8) (<= bt-id 15))
+             (setq ans (+ (* (- bt-id 8) 9) 16)))
+            ((and (>= bt-id 16) (<= bt-id 79))
+             (setq ans (+ (* (/ bt-id 8) 9) (mod bt-id 8) -10)))
+            (t
+              (setq ans nil))))
+    )
 
-  (:board2led-id
-    (bo-id)
-    (if (or (eq bo-id nil)
-            (< (mod bo-id 10) 1)
-            (> (mod bo-id 10) 8)
-            (< (/   bo-id 10) 1)
-            (> (/   bo-id 10) 8))
-        nil
-      (+ (* (/ bo-id 10) 9) (mod bo-id 10) -2)))
+  (:board2led-id (bo-id) bo-id)
 
   (:state2led ;; stateに応じて光らせる
     (bo-id)
@@ -88,7 +75,8 @@
 
   (:joy-cb
     (msg)
-    (let ((button-id (get-idx-from-value (send msg :buttons) 1))
+    ;; (setq tmp msg)
+    (let ((button-id (get-idx-from-value (send msg :axes) 1.0))
           (target-id))
       ;; 直前と同じボタン
       (if (eq button-id prev-input-button)
@@ -99,6 +87,7 @@
           (return-from :joy-cb))
 
       (setq target-id (send self :button2board-id button-id))
+      ;; (format t "(~a, ~a)~%" button-id target-id)
       (setf (elt state-list target-id) 1)
       (dotimes (idx (length state-list))
         (send self :state2led idx))
@@ -107,6 +96,7 @@
   )
 
 ;; atlasmarion/midi-gazebo-cotroller.lからコピペ
+;; 1と1.0だと一致しないことに注意
 (defun get-idx-from-value (l value)
   (let ((answer-idx nil))
     (dotimes (idx (length l))
