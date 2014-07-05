@@ -88,7 +88,7 @@
 
       (setq target-id (send self :button2board-id button-id))
       ;; (format t "(~a, ~a)~%" button-id target-id)
-      (setf (elt state-list target-id) 1)
+      (setelt state-list target-id 1)
       (dotimes (idx (length state-list))
         (send self :state2led idx))
       ))
