@@ -105,6 +105,19 @@
 
   )
 
+(defclass ripple
+  :super object
+  :slots (center speed color))
+
+(defmethod ripple
+  (:init
+   (i-center i-speed i-color)
+   (setq center i-center)
+   (setq speed i-speed)
+   (setq color i-color))
+
+)
+
 ;; atlasmarion/midi-gazebo-cotroller.lからコピペ
 ;; 1と1.0だと一致しないことに注意
 (defun get-idx-from-value (l value)
