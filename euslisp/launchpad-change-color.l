@@ -68,10 +68,20 @@
           (l-id (send self :board2led-id bo-id)))
       (case state
         (0 (pub-led l-id :off))
-        (1 (pub-led l-id :orange))
-        (2 (pub-led l-id :green))
-        (t (pub-led l-id :red))))
+        (1 (pub-led l-id :red))
+        (2 (pub-led l-id :orange))
+        (3 (pub-led l-id :yellow))
+        (4 (pub-led l-id :green))))
     )
+
+  (:change-state
+   (bo-id)
+   (let (new-state)
+     (setq new-state (1+ (elt state-list bo-id)))
+     (if (>= new-state 5)
+         (setq new-state 0))
+     (setelt state-list bo-id new-state))
+   )
 
   (:joy-cb
     (msg)
@@ -88,7 +98,7 @@
 
       (setq target-id (send self :button2board-id button-id))
       ;; (format t "(~a, ~a)~%" button-id target-id)
-      (setelt state-list target-id 1)
+      (send self :change-state target-id)
       (dotimes (idx (length state-list))
         (send self :state2led idx))
       ))
