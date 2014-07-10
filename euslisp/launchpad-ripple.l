@@ -31,7 +31,7 @@
 
 (defclass launchpad-ripple
   :super object
-  :slots (prev-input-button state-list))
+  :slots (prev-input-button state-list ripple-list))
 ;; state-listはboardのidで表す。
 
 (defmethod launchpad-ripple
@@ -41,6 +41,7 @@
     (setq state-list (make-list 80 :initial-element 0))
     (dotimes (idx (length state-list))
       (send self :state2led idx))
+    (setq ripple-list nil)
     (ros::subscribe "/joy" sensor_msgs::Joy #'send self :joy-cb)
     )
 
@@ -86,13 +87,14 @@
      (send self :state2led i))
    )
 
-  (:change-state
-   (bo-id)
-   (let (new-state)
-     (setq new-state (1+ (elt state-list bo-id)))
-     (if (>= new-state 5)
-         (setq new-state 0))
-     (setelt state-list bo-id new-state))
+  (:change-state-all
+   ()
+   (send-all ripple-list :change-state state-list)
+   )
+
+  (:inc-step-all
+   ()
+   (send-all ripple-list :inc-step)
    )
 
   (:joy-cb
@@ -109,10 +111,13 @@
           (return-from :joy-cb))
 
       (setq target-id (send self :button2board-id button-id))
+      (setq ripple-list (append ripple-list (list (instance ripple :init target-id 0.1 1))))
+      ;; 色のランダム、小数点のスピード、削除について
+
       ;; (format t "(~a, ~a)~%" button-id target-id)
-      (send self :change-state target-id)
-      (dotimes (idx (length state-list))
-        (send self :state2led idx))
+      ;;(send self :change-state target-id)
+      ;;(dotimes (idx (length state-list))
+      ;;  (send self :state2led idx))
       ))
 
   )
@@ -202,9 +207,14 @@
       (if (equal (elt l idx) value) (setq answer-idx idx)))
     answer-idx))
 
-;; (unix::sleep 1)
-;; (setq *launchpad-ripple* (instance launchpad-ripple :init))
-;; (ros::rate 30)
-;; (while (ros::ok)
-;;   (ros::spin-once)
-;;   (ros::sleep))
+(unix::sleep 1)
+(setq *launchpad-ripple* (instance launchpad-ripple :init))
+(ros::rate 30)
+(while (ros::ok)
+  (send *launchpad-ripple* :reset-state-list)
+;;  (reset-led)
+  (send *launchpad-ripple* :change-state-all)
+  (send *launchpad-ripple* :inc-step-all)
+  (send *launchpad-ripple* :statelist2led)
+  (ros::spin-once)
+  (ros::sleep))
