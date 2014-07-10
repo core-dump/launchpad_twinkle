@@ -159,6 +159,14 @@
 
   (:inc-step () (setq step (1+ step)))
 
+  (:change-state
+   (state-list)
+   (let (circle-list)
+     (setq circle-list (send self :circle-list))
+     (dolist (target-id circle-list)
+       (setelt state-list target-id color)))
+   )
+
 )
 
 (defun shift-board-id (bo-id x y)
