@@ -116,13 +116,23 @@
       (setq ripple-list
         (append ripple-list
           (list (instance ripple :init target-id 0.1 (1+ (random 4))))))
-      ;; 削除について
+      (send self :clean-ripple-list)
+      ;; (print ripple-list)
 
       ;; (format t "(~a, ~a)~%" button-id target-id)
       ;;(send self :change-state target-id)
       ;;(dotimes (idx (length state-list))
       ;;  (send self :state2led idx))
       ))
+
+  (:clean-ripple-list
+   ()
+   (dolist (ripple ripple-list)
+      ;; (format t "~a ~a~%" ripple (send ripple :circle-list))
+     (if (not (send ripple :circle-list))
+         ;; (delete)は1番目の要素が消えなかった。
+         (setq ripple-list (remove ripple ripple-list :count 1))))
+   )
 
   )
 
