@@ -42,6 +42,8 @@
     (dotimes (idx (length state-list))
       (send self :state2led idx))
     (setq ripple-list nil)
+    (setq *random-state* (integer-vector (send (unix::now) :micro)
+                                         (send (unix::now) :total-seconds)))
     (ros::subscribe "/joy" sensor_msgs::Joy #'send self :joy-cb)
     )
 
@@ -111,8 +113,10 @@
           (return-from :joy-cb))
 
       (setq target-id (send self :button2board-id button-id))
-      (setq ripple-list (append ripple-list (list (instance ripple :init target-id 0.1 1))))
-      ;; 色のランダム、小数点のスピード、削除について
+      (setq ripple-list
+        (append ripple-list
+          (list (instance ripple :init target-id 0.1 (1+ (random 4))))))
+      ;; 削除について
 
       ;; (format t "(~a, ~a)~%" button-id target-id)
       ;;(send self :change-state target-id)
