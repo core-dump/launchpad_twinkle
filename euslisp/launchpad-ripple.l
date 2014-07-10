@@ -117,6 +117,46 @@
    (setq color i-color)
    (setq step 0))
 
+  (:circle-list ;; この中で枠外は除去
+   ()
+   (let (dist ans-list target-id)
+     (setq dist (round (* speed step)))
+
+     (do ((dx (- dist) (1+ dx))) ((> dx dist))
+         (print target-id)
+       (setq target-id (shift-board-id center dx (- dist)))
+       (if (and target-id
+                (>= target-id 8)
+                (<= target-id 78)
+                (/= (mod target-id 9) 7))
+       (setq ans-list (append ans-list (list target-id))))
+
+       (setq target-id (shift-board-id center dx dist))
+       (if (and target-id
+                (>= target-id 8)
+                (<= target-id 78)
+                (/= (mod target-id 9) 7))
+       (setq ans-list (append ans-list (list target-id)))))
+
+     (do ((dy (- dist) (1+ dy))) ((> dy dist))
+       (setq target-id (shift-board-id center (- dist) dy))
+       (if (and target-id
+                (>= target-id 8)
+                (<= target-id 78)
+                (/= (mod target-id 9) 7))
+       (setq ans-list (append ans-list (list target-id))))
+
+       (setq target-id (shift-board-id center dist dy))
+       (if (and target-id
+                (>= target-id 8)
+                (<= target-id 78)
+                (/= (mod target-id 9) 7))
+       (setq ans-list (append ans-list (list target-id)))))
+     (setq ans-list (remove-duplicates ans-list))
+     ans-list
+     )
+   )
+
   (:inc-step () (setq step (1+ step)))
 
 )
