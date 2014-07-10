@@ -118,6 +118,19 @@
 
 )
 
+(defun shift-board-id (bo-id x y)
+  (let (ans)
+    (if (<= bo-id 7) (setq bo-id (1- bo-id))) ;; 計算のため最上段を右に1つシフト
+    (if (or (/= (/ (+ bo-id 1) 9) (/ (+ bo-id 1 x) 9))
+            (= (+ bo-id x) -2))
+        (return-from shift-board-id nil))
+    (setq ans (+ bo-id x (* y 9)))
+    (if (= ans 7) (return-from shift-board-id nil))
+    (if (<= ans 6) (setq ans (1+ ans)))
+    (if (or (< ans 0) (> ans 79)) (return-from shift-board-id nil))
+    ans)
+  )
+
 ;; atlasmarion/midi-gazebo-cotroller.lからコピペ
 ;; 1と1.0だと一致しないことに注意
 (defun get-idx-from-value (l value)
@@ -126,9 +139,9 @@
       (if (equal (elt l idx) value) (setq answer-idx idx)))
     answer-idx))
 
-(unix::sleep 1)
-(setq *launchpad-ripple* (instance launchpad-ripple :init))
-(ros::rate 30)
-(while (ros::ok)
-  (ros::spin-once)
-  (ros::sleep))
+;; (unix::sleep 1)
+;; (setq *launchpad-ripple* (instance launchpad-ripple :init))
+;; (ros::rate 30)
+;; (while (ros::ok)
+;;   (ros::spin-once)
+;;   (ros::sleep))
