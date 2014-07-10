@@ -107,14 +107,17 @@
 
 (defclass ripple
   :super object
-  :slots (center speed color))
+  :slots (center speed color step))
 
 (defmethod ripple
   (:init
-   (i-center i-speed i-color)
+   (i-center i-speed i-color) ;; optional
    (setq center i-center)
    (setq speed i-speed)
-   (setq color i-color))
+   (setq color i-color)
+   (setq step 0))
+
+  (:inc-step () (setq step (1+ step)))
 
 )
 
