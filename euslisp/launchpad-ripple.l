@@ -144,7 +144,7 @@
      (setq dist (round (* speed step)))
 
      (do ((dx (- dist) (1+ dx))) ((> dx dist))
-         (print target-id)
+         ;;(print target-id)
        (setq target-id (shift-board-id center dx (- dist)))
        (if (and target-id
                 (>= target-id 8)
