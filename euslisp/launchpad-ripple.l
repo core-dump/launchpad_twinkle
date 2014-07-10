@@ -74,6 +74,18 @@
         (4 (pub-led l-id :green))))
     )
 
+  (:reset-state-list
+    ()
+    (dotimes (i (length state-list))
+      (setelt state-list i 0))
+    )
+
+  (:statelist2led
+   ()
+   (dotimes (i (length state-list))
+     (send self :state2led i))
+   )
+
   (:change-state
    (bo-id)
    (let (new-state)
