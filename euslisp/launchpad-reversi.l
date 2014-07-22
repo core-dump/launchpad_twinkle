@@ -79,6 +79,17 @@
         nil
       (+ (* (/ bt-id 8) 10) (mod bt-id 8) 1)))
 
+  (:board2button-id
+   (bo-id)
+   (if (or (eq bo-id nil)
+           (< (mod bo-id 10) 1)
+           (> (mod bo-id 10) 8)
+           (< (/   bo-id 10) 1)
+           (> (/   bo-id 10) 8))
+       nil
+     (+ (* (/ bo-id 10) 8) (mod bo-id 10) -1))
+   )
+
   (:board2led-id
     (bo-id)
     (if (or (eq bo-id nil)
