@@ -305,6 +305,17 @@
      (format t "* * *~%~%Thank you for playing!~%~%* * *~%~%"))
    )
 
+  ;; 置ける場所を数える
+  (:count-placeable
+   ()
+   (let ((ans 0))
+     (dotimes (i (length state-list))
+       ;; (:is-placeable)にゲーム盤外を入れても大丈夫なことを前提
+       (if (send self :is-placeable i)
+           (setq ans (1+ ans))))
+     ans)
+   )
+
   )
 
 ;; atlasmarion/midi-gazebo-cotroller.lからコピペ
