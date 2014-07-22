@@ -316,6 +316,26 @@
      ans)
    )
 
+  ;; bo-idに置いた場合の次の相手の置ける場所を数える
+  (:simulate-next-placeable-count
+   (bo-id)
+   ;; そもそも置けるか？
+   (if (not (send self :is-placeable bo-id))
+       (return-from :simulate-next-placeable-count nil))
+   (let (state-list-bak player-bak flat-target-list ans)
+     (setq state-list-bak (copy-object state-list))
+     (setq player-bak player)
+     (setq target-list (send self :flip-list bo-id))
+     (dolist (target (flatten target-list))
+       (setf (elt state-list target) player))
+     (if (= player 1) (setq player 2) (setq player 1))
+     (setq ans (send self :count-placeable))
+     ;; 元に戻す
+     (setq state-list state-list-bak)
+     (setq player player-bak)
+     ans)
+   )
+
   )
 
 ;; atlasmarion/midi-gazebo-cotroller.lからコピペ
