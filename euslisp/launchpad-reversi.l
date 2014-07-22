@@ -66,6 +66,8 @@
       (send self :state2led idx))
     (pub-led 0 :orange) ;; ここだと光る
     (pub-led 16 :yellow)
+    (setq *random-state* (integer-vector (send (unix::now) :micro)
+                                         (send (unix::now) :total-seconds)))
     (ros::subscribe "/joy" sensor_msgs::Joy #'send self :joy-cb)
     )
 
@@ -333,6 +335,28 @@
      ;; 元に戻す
      (setq state-list state-list-bak)
      (setq player player-bak)
+     ans)
+   )
+
+  ;; 次に相手が置ける場所を最小化する手を返す
+  (:reduce-next-placeable
+   ()
+   (let ((ans nil)
+         (ans-list nil)
+         (min-count 64) ;; most-positive-fixnumにするまでもない
+         (now-count 0))
+     (dotimes (bo-id (length state-list))
+       (setq now-count (send self :simulate-next-placeable-count bo-id))
+       (cond
+        ((not now-count) nil)
+        ((= now-count min-count)
+         (setq ans-list (append ans-list (list bo-id))))
+        ((< now-count min-count)
+         (setq min-count now-count)
+         (setq ans-list (list bo-id)))))
+     ;; 複数ある場合はランダム
+     (setq ans (elt ans-list (random (length ans-list))))
+     ;; ans-list
      ans)
    )
 
