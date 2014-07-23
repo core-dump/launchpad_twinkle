@@ -4,7 +4,7 @@
 (ros::load-ros-manifest "sensor_msgs")
 (ros::advertise "/midi_joy/set_feedback" sensor_msgs::JoyFeedbackArray)
 
-;; LEDs
+;; states, LEDs
 ;; -------------------
 ;;  0  1 ...  6  7
 ;; -- -- --- -- --
@@ -16,11 +16,31 @@
 ;; 71 72 ... 77 78 | 79
 ;; -------------------
 
+;; このファイルまとめてクラス化したい
+
+(setq *led-states* (make-list 80 :initial-element :off))
+
+;; グローバルヤバい
+(defun reset-led-states ()
+  (setq *led-states* (make-list (length *led-states*) :initial-element :off))
+  )
+
+;; intensity = :off, :red, :green, :yellow, :orange, :red-orange
+(defun set-led-state (id intensity)
+  (setelt *led-states* id intensity)
+  )
+
+(defun apply-led-states ()
+  (dotimes (state-id (length *led-states*))
+    (pub-led state-id (elt *led-states* state-id)))
+  )
+
 (defun pub-led (id intensity)
   (let ((msg (instance sensor_msgs::JoyFeedbackArray :init))
         (msg-elem (instance sensor_msgs::JoyFeedback :init)))
     (send msg-elem :type 0)
     (if (eq id nil) (return-from pub-led))
+    (set-led-state id intensity) ;; 一時的。このメソッドからは分離したい。
     (send msg-elem :id id)
     (cond
       ((equal intensity :off)        (setq intensity 0))
@@ -48,8 +68,13 @@
 (defun radio-button-led (selected-id id-list)
   (dolist (id id-list)
     (if (= id selected-id)
-        (pub-led id :red)
-      (pub-led id :green))))
+        (progn
+          (set-led-state id :red)
+          (pub-led id :red))
+      (progn
+        (set-led-state id :green)
+        (pub-led id :green))))
+  )
 
 (defun reset-led ()
   (dotimes (i 80)
