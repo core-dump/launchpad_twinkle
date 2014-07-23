@@ -230,6 +230,9 @@
         (pub-led 16 :yellow)
         (pub-led 16 :red))
       (format t "~%player~a exist-placeable: ~a~%" player (send self :exist-placeable))
+      (format t "count-placeable ~a~%" (send self :count-placeable))
+      (format t "best place is ~a (=~a)~%" (send self :reduce-next-placeable)
+              (send self :board2button-id (send self :reduce-next-placeable)))
       ))
 
   (:is-placeable ;; そのマスは置けるか？
