@@ -4,6 +4,7 @@
 (require :launchpad-twinkle "package://launchpad_twinkle/euslisp/launchpad-twinkle.l")
 (ros::load-ros-manifest "sensor_msgs")
 (ros::advertise "/midi_joy/set_feedback" sensor_msgs::JoyFeedbackArray)
+(ros::advertise "/joy" sensor_msgs::Joy)
 
 ;; buttons
 ;; -------------------
@@ -372,6 +373,16 @@
      (setq ans (elt ans-list (random (length ans-list))))
      ;; ans-list
      ans)
+   )
+
+  (:pub-button
+   (button-id)
+   (let (msg tmp-buttons)
+     (setq msg (instance sensor_msgs::Joy :init))
+     (setq tmp-buttons (make-list 72 :initial-element 0))
+     (setelt tmp-buttons button-id 1)
+     (send msg :buttons tmp-buttons)
+     (ros::publish "/Joy" msg))
    )
 
   )
