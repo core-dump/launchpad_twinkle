@@ -382,7 +382,17 @@
      (setq tmp-buttons (make-list 72 :initial-element 0))
      (setelt tmp-buttons button-id 1)
      (send msg :buttons tmp-buttons)
-     (ros::publish "/Joy" msg))
+     (ros::publish "/joy" msg))
+   )
+
+  ;; TODO: nilへの対応
+  ;; TODO: publishに失敗することがある
+  (:play-by-com
+   ()
+   (when (= player 2)
+     (unix::sleep 1)
+     (send self :pub-button (send self :board2button-id (send self :reduce-next-placeable)))
+     (print "COM placed."))
    )
 
   )
@@ -402,6 +412,7 @@
 (ros::rate 30)
 (while (ros::ok)
   (ros::spin-once)
+  (send *launchpad-reversi* :play-by-com)
   (when (send *launchpad-reversi* :finish-judge)
     (send *launchpad-reversi* :show-result)
     (exit))
