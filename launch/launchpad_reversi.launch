@@ -1,4 +1,9 @@
 <launch>
+  <arg name="1p_com" default="false" />
+  <arg name="2p_com" default="false" />
+  <param name="/launchpad_reversi/1p_com" type="boolean" value="$(arg 1p_com)" />
+  <param name="/launchpad_reversi/2p_com" type="boolean"  value="$(arg 2p_com)" />
+
   <node pkg="jsk_teleop_joy" type="midi_config_player.py"
         args="$(find jsk_teleop_joy)/configs/launchpad_mini.yaml" name="midi_joy" />
   <node name="launchpad_reversi" pkg="roseus" type="roseus"

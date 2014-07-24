@@ -44,15 +44,17 @@
 
 (defclass launchpad-reversi
   :super object
-  :slots (player player-lock pass-cnt prev-input-button state-list))
+  :slots (player com-flags player-lock pass-cnt prev-input-button state-list))
 ;; playerは1,2のどちらか。
+;; com-flagsの要素番号は(- player 1)に対応。
 ;; state-listはboardのidで表す。
 ;; state-listには0（無所属）,1（1P）,2(2P)のどれかが入る。
 
 (defmethod launchpad-reversi
   (:init
-    ()
+    (&key (1p-com nil) (2p-com nil))
     (setq player 1)
+    (setq com-flags (list 1p-com 2p-com))
     (setq player-lock nil)
     (setq pass-cnt (list 0 0))
     ;;(pub-led 0 :orange) ;; なんかここだと光らない
@@ -389,7 +391,7 @@
   ;; TODO: publishに失敗することがある
   (:play-by-com
    ()
-   (when (= player 2)
+   (when (elt com-flags (- player 1))
      (unix::sleep 1)
      (send self :pub-button (send self :board2button-id (send self :reduce-next-placeable)))
      (print "COM placed."))
@@ -405,7 +407,10 @@
     answer-idx))
 
 (unix::sleep 1) ;; midi_config_player待ち
-(setq *launchpad-reversi* (instance launchpad-reversi :init))
+(setq *launchpad-reversi*
+      (instance launchpad-reversi :init
+                :1p-com (ros::get-param "/launchpad_reversi/1p_com")
+                :2p-com (ros::get-param "/launchpad_reversi/2p_com")))
 
 ;; やたらファンが回る(ros::rate)とか？
 ;; 最初にボタンを押したとき、/midi_joy/set_feedbackが1000hz以上出てるのが気になる。
