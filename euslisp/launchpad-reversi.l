@@ -371,8 +371,11 @@
         ((< now-count min-count)
          (setq min-count now-count)
          (setq ans-list (list bo-id)))))
-     ;; 複数ある場合はランダム
-     (setq ans (elt ans-list (random (length ans-list))))
+     (if ans-list
+         ;; 複数ある場合はランダム
+         (setq ans (elt ans-list (random (length ans-list))))
+       ;; passしかないときはnilを返す
+       (setq ans nil))
      ;; ans-list
      ans)
    )
@@ -387,13 +390,16 @@
      (ros::publish "/joy" msg))
    )
 
-  ;; TODO: nilへの対応
   ;; TODO: publishに失敗することがある
   (:play-by-com
    ()
    (when (elt com-flags (- player 1))
      (unix::sleep 1)
-     (send self :pub-button (send self :board2button-id (send self :reduce-next-placeable)))
+     (let (place)
+       (setq place (send self :reduce-next-placeable))
+       (if place
+           (send self :pub-button (send self :board2button-id place))
+         (send self :pub-button 0)))
      (print "COM placed."))
    )
 
