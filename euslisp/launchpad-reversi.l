@@ -4,6 +4,7 @@
 (require :launchpad-twinkle "package://launchpad_twinkle/euslisp/launchpad-twinkle.l")
 (ros::load-ros-manifest "sensor_msgs")
 (ros::advertise "/midi_joy/set_feedback" sensor_msgs::JoyFeedbackArray)
+(ros::advertise "/joy" sensor_msgs::Joy)
 
 ;; buttons
 ;; -------------------
@@ -43,15 +44,17 @@
 
 (defclass launchpad-reversi
   :super object
-  :slots (player player-lock pass-cnt prev-input-button state-list))
+  :slots (player com-flags player-lock pass-cnt prev-input-button state-list))
 ;; playerは1,2のどちらか。
+;; com-flagsの要素番号は(- player 1)に対応。
 ;; state-listはboardのidで表す。
 ;; state-listには0（無所属）,1（1P）,2(2P)のどれかが入る。
 
 (defmethod launchpad-reversi
   (:init
-    ()
+    (&key (1p-com nil) (2p-com nil))
     (setq player 1)
+    (setq com-flags (list 1p-com 2p-com))
     (setq player-lock nil)
     (setq pass-cnt (list 0 0))
     ;;(pub-led 0 :orange) ;; なんかここだと光らない
@@ -66,6 +69,8 @@
       (send self :state2led idx))
     (pub-led 0 :orange) ;; ここだと光る
     (pub-led 16 :yellow)
+    (setq *random-state* (integer-vector (send (unix::now) :micro)
+                                         (send (unix::now) :total-seconds)))
     (ros::subscribe "/joy" sensor_msgs::Joy #'send self :joy-cb)
     )
 
@@ -76,6 +81,17 @@
             (> bt-id 71))
         nil
       (+ (* (/ bt-id 8) 10) (mod bt-id 8) 1)))
+
+  (:board2button-id
+   (bo-id)
+   (if (or (eq bo-id nil)
+           (< (mod bo-id 10) 1)
+           (> (mod bo-id 10) 8)
+           (< (/   bo-id 10) 1)
+           (> (/   bo-id 10) 8))
+       nil
+     (+ (* (/ bo-id 10) 8) (mod bo-id 10) -1))
+   )
 
   (:board2led-id
     (bo-id)
@@ -217,6 +233,9 @@
         (pub-led 16 :yellow)
         (pub-led 16 :red))
       (format t "~%player~a exist-placeable: ~a~%" player (send self :exist-placeable))
+      (format t "count-placeable ~a~%" (send self :count-placeable))
+      (format t "best place is ~a (=~a)~%" (send self :reduce-next-placeable)
+              (send self :board2button-id (send self :reduce-next-placeable)))
       ))
 
   (:is-placeable ;; そのマスは置けるか？
@@ -305,6 +324,85 @@
      (format t "* * *~%~%Thank you for playing!~%~%* * *~%~%"))
    )
 
+  ;; 置ける場所を数える
+  (:count-placeable
+   ()
+   (let ((ans 0))
+     (dotimes (i (length state-list))
+       ;; (:is-placeable)にゲーム盤外を入れても大丈夫なことを前提
+       (if (send self :is-placeable i)
+           (setq ans (1+ ans))))
+     ans)
+   )
+
+  ;; bo-idに置いた場合の次の相手の置ける場所を数える
+  (:simulate-next-placeable-count
+   (bo-id)
+   ;; そもそも置けるか？
+   (if (not (send self :is-placeable bo-id))
+       (return-from :simulate-next-placeable-count nil))
+   (let (state-list-bak player-bak flat-target-list ans)
+     (setq state-list-bak (copy-object state-list))
+     (setq player-bak player)
+     (setq target-list (send self :flip-list bo-id))
+     (dolist (target (flatten target-list))
+       (setf (elt state-list target) player))
+     (if (= player 1) (setq player 2) (setq player 1))
+     (setq ans (send self :count-placeable))
+     ;; 元に戻す
+     (setq state-list state-list-bak)
+     (setq player player-bak)
+     ans)
+   )
+
+  ;; 次に相手が置ける場所を最小化する手を返す
+  (:reduce-next-placeable
+   ()
+   (let ((ans nil)
+         (ans-list nil)
+         (min-count 64) ;; most-positive-fixnumにするまでもない
+         (now-count 0))
+     (dotimes (bo-id (length state-list))
+       (setq now-count (send self :simulate-next-placeable-count bo-id))
+       (cond
+        ((not now-count) nil)
+        ((= now-count min-count)
+         (setq ans-list (append ans-list (list bo-id))))
+        ((< now-count min-count)
+         (setq min-count now-count)
+         (setq ans-list (list bo-id)))))
+     (if ans-list
+         ;; 複数ある場合はランダム
+         (setq ans (elt ans-list (random (length ans-list))))
+       ;; passしかないときはnilを返す
+       (setq ans nil))
+     ;; ans-list
+     ans)
+   )
+
+  (:pub-button
+   (button-id)
+   (let (msg tmp-buttons)
+     (setq msg (instance sensor_msgs::Joy :init))
+     (setq tmp-buttons (make-list 72 :initial-element 0))
+     (setelt tmp-buttons button-id 1)
+     (send msg :buttons tmp-buttons)
+     (ros::publish "/joy" msg))
+   )
+
+  ;; TODO: publishに失敗することがある
+  (:play-by-com
+   ()
+   (when (elt com-flags (- player 1))
+     (unix::sleep 1)
+     (let (place)
+       (setq place (send self :reduce-next-placeable))
+       (if place
+           (send self :pub-button (send self :board2button-id place))
+         (send self :pub-button 0)))
+     (print "COM placed."))
+   )
+
   )
 
 ;; atlasmarion/midi-gazebo-cotroller.lからコピペ
@@ -315,13 +413,17 @@
     answer-idx))
 
 (unix::sleep 1) ;; midi_config_player待ち
-(setq *launchpad-reversi* (instance launchpad-reversi :init))
+(setq *launchpad-reversi*
+      (instance launchpad-reversi :init
+                :1p-com (ros::get-param "/launchpad_reversi/1p_com")
+                :2p-com (ros::get-param "/launchpad_reversi/2p_com")))
 
 ;; やたらファンが回る(ros::rate)とか？
 ;; 最初にボタンを押したとき、/midi_joy/set_feedbackが1000hz以上出てるのが気になる。
 (ros::rate 30)
 (while (ros::ok)
   (ros::spin-once)
+  (send *launchpad-reversi* :play-by-com)
   (when (send *launchpad-reversi* :finish-judge)
     (send *launchpad-reversi* :show-result)
     (exit))
