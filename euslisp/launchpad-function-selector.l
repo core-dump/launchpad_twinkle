@@ -14,7 +14,9 @@
 
 (defmethod launchpad-function-selector
   (:init
-   ()
+   (&optional config-fname)
+   (if config-fname
+       (send self :load-config config-fname))
    (ros::subscribe "/joy" sensor_msgs::Joy #'send self :joy-cb)
    )
 
@@ -103,10 +105,3 @@
 
 ;; midi_config_player待ち。
 (unix::sleep 1)
-
-(setq *lfs* (instance launchpad-function-selector :init))
-(ros::rate 30)
-(while (ros::ok)
-  (ros::spin-once)
-  (ros::sleep)
-  )
