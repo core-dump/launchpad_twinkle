@@ -26,7 +26,10 @@
        (stream
         (concatenate string (ros::rospack-find "launchpad_twinkle") "/config/" fname)
         :direction :input)
-       (while (not (setq config (eval (read stream)))))) ;; eofに行くと死にそう
+       (while (not (setq config (eval (read stream nil :eof))))))
+     (when (eq config :eof)
+       (warning-message 1 "EOF hit while loading config.~%")
+       (return-from :load-config nil))
      (setq funcs (cdr (assoc 'funcs config)))
      (setq non-led (cadr (assoc 'non-led config)))
      (setq radios (cdr (assoc 'radio-buttons config)))
