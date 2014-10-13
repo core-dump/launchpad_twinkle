@@ -29,32 +29,28 @@
 
 ;; ボタン番号と実行したい式の対応を書く。
 ;; 割り当てられたボタンはオレンジ色に光る。
-'((non-led
-   (1 (func1))
-   (2 (func2))
-   )
-
-  (led
+'((funcs
    (11 (hoge-func))
    (12 (hoge-func *hoge-arg*))
    (13 (send hoge-class :hoge-method))
-
-   ;; 複数行の式はとりあえずprognでまとめてください。
+   ;; 複数行の式はprognでまとめてください。
    (14 (progn (hoge-func)
               (send hoge-class :hoge-method)))
-
-   ;; 一つの式になっていれば何でもいい
+   ;; 逆に一つの式なら何でもいい
    (15 (if *hoge*
            (true-func)
          (false-func)))
-
    ;; 以下はラジオボタンの説明用
    (21 (hoge-state1))
    (22 (hoge-state2))
-
    (31 (fuga-state1))
    (32 (fuga-state2))
    (33 (fuga-state3))
+    )
+
+  ;; ここで指定したボタンは割り当てがあっても光らない
+  (non-led
+    (11)
     )
 
   ;; 次のように書くとラジオボタン設定になり、

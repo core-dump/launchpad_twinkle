@@ -10,7 +10,7 @@
 
 (defclass launchpad-function-selector
   :super propertied-object
-  :slots (func-alist))
+  :slots (func-alist radio-group-list))
 
 (defmethod launchpad-function-selector
   (:init
@@ -20,34 +20,69 @@
 
   ;; configファイルをロードして、設定を反映する
   (:load-config
-   (fname)
-   (let ((config (load fname)))
-     ()
-   )
+   (&optional (fname "../config/sample-config.l"))
+   (let (config non-led led radio)
+     (with-open-file
+       (stream "../config/sample-config.l" :direction :input)
+       (while (not (setq config (eval (read stream)))))) ;; eofに行くと死にそう
+     (setq funcs (cdr (assoc 'funcs config)))
+     (setq non-led (cdr (assoc 'non-led config)))
+     (setq radios (cdr (assoc 'radio-buttons config)))
+
+     (setq func-alist (send self :make-func-alist funcs))
+     (send self :init-normal-led (send self :extract-led-buttons))
+     (send self :init-radio-led radios)
+     (setq radio-group-list (copy-object radios))
+     )
    )
 
-  ;; 専用形式のリストをもとに関数をボタンに割り当てる
-  (:allocate-func
-   (flist)
+  ;; 専用形式のリストを基に関数とボタンの割り当てリストを作る。
+  (:make-func-alist
+   (funcs)
+   (mapcar
+    (lambda (x) (cons (car x) (cadr x)))
+    funcs)
    )
 
-  ;; 関数の割り当てが済んだ前提でLEDの設定をする
-  (:apply-led
-   ()
+  ;; 関数リストと光らせないリストを基に光らせるリストを得る。
+  (:extract-led-buttons
+   (funcs non-led)
+   (set-difference (mapcar #'car funcs) non-led)
    )
 
-  ;; ラジオボタンの更新
+  ;; 非ラジオLEDの設定をする。
+  (:init-normal-led
+   (buttons &optional (color :orange))
+   (mapc (lambda (x) (set-led-state x color) buttons))
+   (apply-led-states)
+   )
+
+  ;; ラジオボタンLEDの設定をする。
+  (:init-radio-led
+   (radio-groups)
+   (mapc (lambda (group)
+           (set-led-state (car group) :red)
+           (mapc (lambda (button)
+                   (set-led-state button :green))
+                 (cdr group)))
+         radio-groups)
+   )
+
+  ;; ラジオボタンの更新。
   (:update-radio
    (selected-btn group-btns)
+   (set-led-state selected-btn :red)
+   (mapc (lambda (button) (set-led-state button :green)) (remove selected-btn group-btns))
    )
 
+  ;; ボタンが押されると対応した関数を実行する。
   (:joy-cb
    (msg)
    (let ((idx (send self :get-idx-from-value (send msg :buttons) 1)))
      (eval (assoc idx func-alist)))
    )
 
-  ;; 同時押しの場合は後ろの番号を返す
+  ;; 同時押しの場合は後ろの番号を返す。
   (:get-idx-from-value
    (l value)
    (let ((answer-idx nil))
