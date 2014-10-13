@@ -29,36 +29,39 @@
 
 ;; ボタン番号と実行したい式の対応を書く。
 ;; 割り当てられたボタンはオレンジ色に光る。
-(setq *launchpad-config*
-  ;; いろいろok。
-  '((11 (hoge-func))
-    (12 (hoge-func *hoge-arg*))
-    (13 (send hoge-class :hoge-method))
+'((non-led
+   (1 (func1))
+   (2 (func2))
+   )
 
-    ;; 複数行の式はとりあえずprognでまとめてください。
-    (14 (progn (hoge-func)
-               (send hoge-class :hoge-method)))
+  (led
+   (11 (hoge-func))
+   (12 (hoge-func *hoge-arg*))
+   (13 (send hoge-class :hoge-method))
 
-    ;; 一つの式になっていれば何でもいい
-    (15 (if *hoge*
-            (true-func)
-          (false-func)))
+   ;; 複数行の式はとりあえずprognでまとめてください。
+   (14 (progn (hoge-func)
+              (send hoge-class :hoge-method)))
 
-    ;; 以下はラジオボタンの説明用
-    (21 (hoge-state1))
-    (22 (hoge-state2))
+   ;; 一つの式になっていれば何でもいい
+   (15 (if *hoge*
+           (true-func)
+         (false-func)))
 
-    (31 (fuga-state1))
-    (32 (fuga-state2))
-    (33 (fuga-state3))
+   ;; 以下はラジオボタンの説明用
+   (21 (hoge-state1))
+   (22 (hoge-state2))
+
+   (31 (fuga-state1))
+   (32 (fuga-state2))
+   (33 (fuga-state3))
     )
-  )
 
-;; 次のように書くとラジオボタン設定になり、
-;; 組の中で最後に押されたボタンが赤、それ以外が緑に光る。
-;; 起動時に赤くなるのは組の最初に書いたボタン。
-(setq *launchpad-config-rb*
-  '((21 22)
-    (32 31 33)
-    )
+  ;; 次のように書くとラジオボタン設定になり、
+  ;; 組の中で最後に押されたボタンが赤、それ以外が緑に光る。
+  ;; 起動時に赤くなるのは組の最初に書いたボタン。
+  (radio-buttons
+   (21 22)
+   (32 31 33)
+   )
   )
