@@ -23,14 +23,17 @@
    (&optional (fname "../config/sample-config.l"))
    (let (config non-led led radio)
      (with-open-file
-       (stream "../config/sample-config.l" :direction :input)
+       (stream
+        (concatenate string (ros::rospack-find "launchpad_twinkle") "/config/sample-config.l")
+        :direction :input)
        (while (not (setq config (eval (read stream)))))) ;; eofに行くと死にそう
      (setq funcs (cdr (assoc 'funcs config)))
-     (setq non-led (cdr (assoc 'non-led config)))
+     (setq non-led (cadr (assoc 'non-led config)))
      (setq radios (cdr (assoc 'radio-buttons config)))
 
+     (reset-led-states)
      (setq func-alist (send self :make-func-alist funcs))
-     (send self :init-normal-led (send self :extract-led-buttons))
+     (send self :init-normal-led (send self :extract-led-buttons funcs non-led))
      (send self :init-radio-led radios)
      (setq radio-group-list (copy-object radios))
      )
@@ -40,7 +43,7 @@
   (:make-func-alist
    (funcs)
    (mapcar
-    (lambda (x) (cons (car x) (cadr x)))
+    #'(lambda (x) (cons (car x) (cadr x)))
     funcs)
    )
 
@@ -53,33 +56,35 @@
   ;; 非ラジオLEDの設定をする。
   (:init-normal-led
    (buttons &optional (color :orange))
-   (mapc (lambda (x) (set-led-state x color) buttons))
+   (mapc #'(lambda (x) (set-led-state x color)) buttons)
    (apply-led-states)
    )
 
   ;; ラジオボタンLEDの設定をする。
   (:init-radio-led
    (radio-groups)
-   (mapc (lambda (group)
+   (mapc #'(lambda (group)
            (set-led-state (car group) :red)
-           (mapc (lambda (button)
+           (mapc #'(lambda (button)
                    (set-led-state button :green))
                  (cdr group)))
          radio-groups)
+   (apply-led-states)
    )
 
   ;; ラジオボタンの更新。
   (:update-radio
    (selected-btn group-btns)
    (set-led-state selected-btn :red)
-   (mapc (lambda (button) (set-led-state button :green)) (remove selected-btn group-btns))
+   (mapc #'(lambda (button) (set-led-state button :green)) (remove selected-btn group-btns))
+   (apply-led-states)
    )
 
   ;; ボタンが押されると対応した関数を実行する。
   (:joy-cb
    (msg)
    (let ((idx (send self :get-idx-from-value (send msg :buttons) 1)))
-     (eval (assoc idx func-alist)))
+     (eval (cdr (assoc idx func-alist))))
    )
 
   ;; 同時押しの場合は後ろの番号を返す。
