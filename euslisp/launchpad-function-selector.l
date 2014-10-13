@@ -20,11 +20,11 @@
 
   ;; configファイルをロードして、設定を反映する
   (:load-config
-   (&optional (fname "../config/sample-config.l"))
+   (&optional (fname "sample-config.l"))
    (let (config non-led led radio)
      (with-open-file
        (stream
-        (concatenate string (ros::rospack-find "launchpad_twinkle") "/config/sample-config.l")
+        (concatenate string (ros::rospack-find "launchpad_twinkle") "/config/" fname)
         :direction :input)
        (while (not (setq config (eval (read stream)))))) ;; eofに行くと死にそう
      (setq funcs (cdr (assoc 'funcs config)))
