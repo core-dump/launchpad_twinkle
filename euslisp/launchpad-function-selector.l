@@ -22,12 +22,13 @@
 
   ;; configファイルをロードして、設定を反映する
   (:load-config
-   (&optional (fname "sample-config.l"))
-   (let (config non-led led radio)
+   (fname &key package)
+   (let (config non-led led radio file-path)
+     (if package
+         (setq file-path (concatenate string (ros::rospack-find package) fname))
+       (setq file-path fname))
      (with-open-file
-       (stream
-        (concatenate string (ros::rospack-find "launchpad_twinkle") "/config/" fname)
-        :direction :input)
+       (stream file-path :direction :input)
        (while (not (setq config (eval (read stream nil :eof))))))
      (when (eq config :eof)
        (warning-message 1 "EOF hit while loading config.~%")
