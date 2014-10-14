@@ -30,34 +30,37 @@
 ;; ボタン番号と実行したい式の対応を書く。
 ;; 割り当てられたボタンはオレンジ色に光る。
 '((funcs
-   (11 (hoge-func))
-   (12 (hoge-func *hoge-arg*))
-   (13 (send hoge-class :hoge-method))
+   ( 8 (print "hello!"))
+   ( 9 (send *sr* :reset-pose))
+   (10 (send *irtviewer* :draw-objects))
+   (11 (send *ri* :angle-vector (send *sr* :angle-vector) 1000))
    ;; 複数行の式はprognでまとめてください。
-   (14 (progn (hoge-func)
-              (send hoge-class :hoge-method)))
+   (17 (progn (send *sr* :reset-pose)
+              (x::window-main-one)
+              (send *ri* :angle-vector (send *sr* :angle-vector))))
    ;; 逆に一つの式なら何でもいい
-   (15 (if *hoge*
-           (true-func)
-         (false-func)))
+   (18 (if (and (boundp '*state*) *state*)
+           (progn (print "state: t")
+                  (print "second print"))
+         (print "state: nil")))
    ;; 以下はラジオボタンの説明用
-   (21 (hoge-state1))
-   (22 (hoge-state2))
-   (31 (fuga-state1))
-   (32 (fuga-state2))
-   (33 (fuga-state3))
+   (26 (setq *state* t))
+   (27 (setq *state* nil))
+   (35 (send *ri* :go-velocity 0.1 0 0))
+   (36 (send *ri* :go-stop))
+   (37 (send *ri* :go-velocity -0.1 0 0))
     )
 
   ;; ここで指定したボタンは割り当てがあっても光らない
   (non-led
-    (11 14)
+    (9 10)
     )
 
   ;; 次のように書くとラジオボタン設定になり、
   ;; 組の中で最後に押されたボタンが赤、それ以外が緑に光る。
   ;; 起動時に赤くなるのは組の最初に書いたボタン。
   (radio-buttons
-   (21 22)
-   (32 31 33)
+   (26 27)
+   (36 35 37)
    )
   )
