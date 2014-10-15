@@ -1,7 +1,18 @@
-#概要
-launchpad miniを光るおもちゃとして使うパッケージです。
+# 概要
+launchpad miniを使うパッケージです。
+  - euslispの関数呼び出しインタフェースとして
+  - 光るおもちゃとして
 
-#遊べるもの
+# euslispの関数呼び出しインタフェース
+launchpad miniのボタンに好きなeuslispの関数を対応させて、ボタンを押すと実行するようにできます。
+関数が割り当てられたボタンは分かりやすいように光ります。
+また、状態切替機能などを割り当てるときのために、ラジオボタン的に光らせる設定もよういしてあります。
+`/euslisp/sample-function-selector.l`
+`/config/sample-config.l`
+`/launch/sample_function_selector.launch`
+をマネしたものを自分の好きなパッケージに置いて使ってみましょう。
+
+# 光るおもちゃ
 ## リバーシ（オセロ）
 `launch/launchpad_reversi.launch`をlaunchすると遊べます。
 
