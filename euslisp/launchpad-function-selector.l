@@ -91,7 +91,9 @@
   (:joy-cb
    (msg)
    (let ((idx (send self :get-idx-from-value (send msg :buttons) 1)))
-     (eval (cdr (assoc idx func-alist))))
+     (eval (cdr (assoc idx func-alist)))
+     (if (member idx (flatten radio-group-list))
+         (send self :update-radio idx (mapcan #'(lambda (l) (if (member idx l) l)) radio-group-list))))
    )
 
   ;; 同時押しの場合は後ろの番号を返す。
