@@ -45,7 +45,7 @@
      (setq func-alist (send self :make-func-alist led-funcs non-led-funcs radio-funcs))
      (send self :init-normal-led led-funcs)
      (send self :init-radio-led radio-funcs)
-     (setq radio-group-list (copy-object radio-funcs))
+     (setq radio-group-list (send self :extract-radio-group radio-funcs))
      )
    )
 
@@ -62,6 +62,7 @@
    )
 
   ;; 関数リストと光らせないリストを基に光らせるリストを得る。
+  ;; もう使ってない気がする。
   (:extract-led-buttons
    (funcs non-led)
    (set-difference (mapcar #'car funcs) non-led)
@@ -84,6 +85,12 @@
                  (cdr group)))
          radio-groups)
    (apply-led-states)
+   )
+
+  ;; configのradio-groupから番号だけを取り出す。
+  (:extract-radio-group
+   (radio-funcs)
+   (mapcar #'(lambda (group) (mapcar #'car group)) radio-funcs)
    )
 
   ;; ラジオボタンの更新。
