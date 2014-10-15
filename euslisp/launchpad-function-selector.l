@@ -14,9 +14,9 @@
 
 (defmethod launchpad-function-selector
   (:init
-   (&optional config-fname)
+   (&optional config-fname &key config-package)
    (if config-fname
-       (send self :load-config config-fname))
+       (send self :load-config config-fname :package config-package))
    (ros::subscribe "/joy" sensor_msgs::Joy #'send self :joy-cb)
    )
 
