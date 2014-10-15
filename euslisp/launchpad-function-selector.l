@@ -62,7 +62,7 @@
   ;; 非ラジオLEDの設定をする。
   (:init-normal-led
    (buttons &optional (color :orange))
-   (mapc #'(lambda (x) (set-led-state x color)) buttons)
+   (mapc #'(lambda (x) (set-led-state (button2led-id x) color)) buttons)
    (apply-led-states)
    )
 
@@ -70,9 +70,9 @@
   (:init-radio-led
    (radio-groups)
    (mapc #'(lambda (group)
-           (set-led-state (car group) :red)
+           (set-led-state (button2led-id (car group)) :red)
            (mapc #'(lambda (button)
-                   (set-led-state button :green))
+                   (set-led-state (button2led-id button) :green))
                  (cdr group)))
          radio-groups)
    (apply-led-states)
@@ -81,8 +81,9 @@
   ;; ラジオボタンの更新。
   (:update-radio
    (selected-btn group-btns)
-   (set-led-state selected-btn :red)
-   (mapc #'(lambda (button) (set-led-state button :green)) (remove selected-btn group-btns))
+   (set-led-state (button2led-id selected-btn) :red)
+   (mapc #'(lambda (button) (set-led-state (button2led-id button) :green))
+         (remove selected-btn group-btns))
    (apply-led-states)
    )
 
