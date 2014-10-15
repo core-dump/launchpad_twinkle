@@ -23,7 +23,7 @@
   ;; configファイルをロードして、設定を反映する
   (:load-config
    (fname &key package)
-   (let (config non-led led radio file-path)
+   (let (config led-funcs non-led-funcs radio-funcs file-path)
      (if package
          (setq file-path (concatenate string (ros::rospack-find package) fname))
        (setq file-path fname))
@@ -33,24 +33,32 @@
      (when (eq config :eof)
        (warning-message 1 "EOF hit while loading config.~%")
        (return-from :load-config nil))
-     (setq funcs (cdr (assoc 'funcs config)))
-     (setq non-led (cadr (assoc 'non-led config)))
-     (setq radios (cdr (assoc 'radio-buttons config)))
+     (setq led-funcs (cdr (assoc 'led-funcs config)))
+     (setq non-led-funcs (cdr (assoc 'non-led-funcs config)))
+     (setq radio-funcs (cdr (assoc 'radio-button-funcs config)))
+
+     (print led-funcs)
+     (print non-led-funcs)
+     (print radio-funcs)
 
      (reset-led-states)
-     (setq func-alist (send self :make-func-alist funcs))
-     (send self :init-normal-led (send self :extract-led-buttons funcs non-led))
-     (send self :init-radio-led radios)
-     (setq radio-group-list (copy-object radios))
+     (setq func-alist (send self :make-func-alist led-funcs non-led-funcs radio-funcs))
+     (send self :init-normal-led led-funcs)
+     (send self :init-radio-led radio-funcs)
+     (setq radio-group-list (copy-object radio-funcs))
      )
    )
 
   ;; 専用形式のリストを基に関数とボタンの割り当てリストを作る。
   (:make-func-alist
-   (funcs)
-   (mapcar
-    #'(lambda (x) (cons (car x) (cadr x)))
-    funcs)
+   (led non-led radio)
+   (labels
+     ((f (l) (cons (car l) (cadr l))))
+     (append
+      (mapcar #'f led)
+      (mapcar #'f non-led)
+      (mapcan #'(lambda (ll) (mapcar #'f ll)) radio))
+     )
    )
 
   ;; 関数リストと光らせないリストを基に光らせるリストを得る。
@@ -62,7 +70,7 @@
   ;; 非ラジオLEDの設定をする。
   (:init-normal-led
    (buttons &optional (color :orange))
-   (mapc #'(lambda (x) (set-led-state (button2led-id x) color)) buttons)
+   (mapc #'(lambda (x) (set-led-state (button2led-id (car x)) color)) buttons)
    (apply-led-states)
    )
 
@@ -70,9 +78,9 @@
   (:init-radio-led
    (radio-groups)
    (mapc #'(lambda (group)
-           (set-led-state (button2led-id (car group)) :red)
+           (set-led-state (button2led-id (caar group)) :red)
            (mapc #'(lambda (button)
-                   (set-led-state (button2led-id button) :green))
+                   (set-led-state (button2led-id (car button)) :green))
                  (cdr group)))
          radio-groups)
    (apply-led-states)
