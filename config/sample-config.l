@@ -5,18 +5,6 @@
 
 ;; ボタン番号は次の通り
 ;;  ----------------------
-;; |  0  1 ...  6  7      |
-;; | -- -- --- -- --      |
-;; |  8  9 ... 14 15 | 16 |
-;; | 17 18 ... 23 24 | 25 |
-;; |  .  . .    .  . | .  |
-;; |  .  .   .  .  . | .  |
-;; | 62 63 ... 68 69 | 70 |
-;; | 71 72 ... 77 78 | 79 |
-;;  ----------------------
-
-;; (こっちにした方が分かりやすいかな？)
-;;  ----------------------
 ;; |  1  2 ...  7  8      |
 ;; | -- -- --- -- --      |
 ;; | 11 12 ... 17 18 | 19 |
@@ -35,10 +23,10 @@
    ;; このように書く。
    ( 8 (print "hello!"))
    ;; 複数行の式はprognでまとめる。
-   (13 (progn (print "filst command")
+   (11 (progn (print "filst command")
               (print "seccond command")))
    ;; 逆に一つの式なら何でもいい。
-   (14 (if (and (boundp '*state*) *state*)
+   (13 (if (and (boundp '*state*) *state*)
            (progn (print "state: t")
                   (print "state: t!!!"))
          (print "state: nil")))
@@ -46,19 +34,19 @@
 
   ;; ここで指定したボタンは割り当てがあっても光らない。
   (non-led-funcs
-    (9 (print "this is non-LED-function."))
+    (12 (print "this is non-LED-function."))
     )
 
   ;; 次のように書くとラジオボタン設定になり、
   ;; 組の中で最後に押されたボタンが赤、それ以外が緑に光る。
   ;; 起動時に赤くなるのは組の最初に書いたボタン。
   (radio-button-funcs
-   ((27 (print "default"))
-    (26 (print "not default 1"))
-    (28 (print "not default 2")))
+   ((22 (print "default"))
+    (21 (print "not default 1"))
+    (23 (print "not default 2")))
 
-   ((35 (progn (setq *state* t) (print "set *state* t")))
-    (36 (progn (setq *state* nil) (print "set *state* nil"))))
+   ((31 (progn (setq *state* nil) (print "set *state* nil")))
+    (32 (progn (setq *state* t) (print "set *state* t"))))
 
    )
 

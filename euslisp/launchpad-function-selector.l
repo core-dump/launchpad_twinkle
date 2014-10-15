@@ -37,10 +37,6 @@
      (setq non-led-funcs (cdr (assoc 'non-led-funcs config)))
      (setq radio-funcs (cdr (assoc 'radio-button-funcs config)))
 
-     (print led-funcs)
-     (print non-led-funcs)
-     (print radio-funcs)
-
      (reset-led-states)
      (setq func-alist (send self :make-func-alist led-funcs non-led-funcs radio-funcs))
      (send self :init-normal-led led-funcs)
@@ -71,7 +67,7 @@
   ;; 非ラジオLEDの設定をする。
   (:init-normal-led
    (buttons &optional (color :orange))
-   (mapc #'(lambda (x) (set-led-state (button2led-id (car x)) color)) buttons)
+   (mapc #'(lambda (x) (set-led-state (board2led-id (car x)) color)) buttons)
    (apply-led-states)
    )
 
@@ -79,9 +75,9 @@
   (:init-radio-led
    (radio-groups)
    (mapc #'(lambda (group)
-           (set-led-state (button2led-id (caar group)) :red)
+           (set-led-state (board2led-id (caar group)) :red)
            (mapc #'(lambda (button)
-                   (set-led-state (button2led-id (car button)) :green))
+                   (set-led-state (board2led-id (car button)) :green))
                  (cdr group)))
          radio-groups)
    (apply-led-states)
@@ -96,8 +92,8 @@
   ;; ラジオボタンの更新。
   (:update-radio
    (selected-btn group-btns)
-   (set-led-state (button2led-id selected-btn) :red)
-   (mapc #'(lambda (button) (set-led-state (button2led-id button) :green))
+   (set-led-state (board2led-id selected-btn) :red)
+   (mapc #'(lambda (button) (set-led-state (board2led-id button) :green))
          (remove selected-btn group-btns))
    (apply-led-states)
    )
@@ -105,7 +101,7 @@
   ;; ボタンが押されると対応した関数を実行する。
   (:joy-cb
    (msg)
-   (let ((idx (send self :get-idx-from-value (send msg :buttons) 1)))
+   (let ((idx (axes2board-id (send self :get-idx-from-value (send msg :axes) 1.0))))
      (eval (cdr (assoc idx func-alist)))
      (if (member idx (flatten radio-group-list))
          (send self :update-radio idx (mapcan #'(lambda (l) (if (member idx l) l)) radio-group-list))))
@@ -121,6 +117,29 @@
    )
 
   )
+
+(defun axes2board-id (axes-id)
+  (cond
+   ((not (numberp axes-id)) nil)
+   ((and (>= axes-id 0) (<= axes-id 7))
+    (+ axes-id 1))
+   ((and (>= axes-id 8) (<= axes-id 15))
+    (+ (* 10 (- axes-id 7)) 9))
+   ((and (>= axes-id 16) (<= axes-id 79))
+    (+ (* 10 (/ (- axes-id 8) 8)) (mod (- axes-id 8) 8) 1))
+   (t nil))
+  )
+
+;; 一時措置。あとでlaunchpad-twinkleの方を修正する。
+(defun board2led-id (board-id)
+  (cond
+   ((not (numberp board-id)) nil)
+   ((and (>= board-id 1) (<= board-id 8))
+    (- board-id 1))
+   ((and (>= (mod board-id 10) 1) (<= (mod board-id 10) 9))
+    (+ (* (/ board-id 10) 9) (mod board-id 10) -2))
+   (t nil))
+)
 
 ;; midi_config_player待ち。
 (unix::sleep 1)

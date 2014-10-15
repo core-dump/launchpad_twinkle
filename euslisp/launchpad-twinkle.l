@@ -54,6 +54,7 @@
     (ros::publish "/midi_joy/set_feedback" msg)))
 
 ;; nilに注意。
+;; 右端光らなくない？
 (defun button2led-id (button-id)
   (let (led-id)
     (cond
