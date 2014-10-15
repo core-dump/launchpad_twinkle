@@ -27,40 +27,39 @@
 ;; | 81 82 ... 87 88 | 89 |
 ;;  ----------------------
 
-;; ボタン番号と実行したい式の対応を書く。
-;; 割り当てられたボタンはオレンジ色に光る。
-'((funcs
+;; 以下のようにボタン番号と実行したい式の対応を書く。
+'(
+
+  ;; ここで割り当てられたボタンはオレンジ色に光る。
+  (led-funcs
+   ;; このように書く。
    ( 8 (print "hello!"))
-   ;; ( 9 (send *sr* :reset-pose))
-   ;; (10 (send *irtviewer* :draw-objects))
-   ;; (11 (send *ri* :angle-vector (send *sr* :angle-vector) 1000))
-   ;; 複数行の式はprognでまとめてください。
-   ;; (17 (progn (send *sr* :reset-pose)
-   ;;            (x::window-main-one)
-   ;;            (send *ri* :angle-vector (send *sr* :angle-vector))))
-   ;; 逆に一つの式なら何でもいい
-   (18 (if (and (boundp '*state*) *state*)
+   ;; 複数行の式はprognでまとめる。
+   (13 (progn (print "filst command")
+              (print "seccond command")))
+   ;; 逆に一つの式なら何でもいい。
+   (14 (if (and (boundp '*state*) *state*)
            (progn (print "state: t")
-                  (print "second print"))
+                  (print "state: t!!!"))
          (print "state: nil")))
-   ;; 以下はラジオボタンの説明用
-   (26 (progn (setq *state* t) (print "set *state* t")))
-   (27 (progn (setq *state* nil) (print "set *state* nil")))
-   ;; (35 (send *ri* :go-velocity 0.1 0 0))
-   ;; (36 (send *ri* :go-stop))
-   ;; (37 (send *ri* :go-velocity -0.1 0 0))
     )
 
-  ;; ここで指定したボタンは割り当てがあっても光らない
-  (non-led
-    ;;(9 10)
+  ;; ここで指定したボタンは割り当てがあっても光らない。
+  (non-led-funcs
+    (9 (print "this is non-LED-function."))
     )
 
   ;; 次のように書くとラジオボタン設定になり、
   ;; 組の中で最後に押されたボタンが赤、それ以外が緑に光る。
   ;; 起動時に赤くなるのは組の最初に書いたボタン。
-  (radio-buttons
-   (26 27)
-;;   (36 35 37)
+  (radio-button-funcs
+   ((27 (print "default"))
+    (26 (print "not default 1"))
+    (28 (print "not default 2")))
+
+   ((35 (progn (setq *state* t) (print "set *state* t")))
+    (36 (progn (setq *state* nil) (print "set *state* nil"))))
+
    )
+
   )
